@@ -50,9 +50,9 @@ The report must explain the final matching method and design rationale; include 
 
 ## Planned milestones and commit checkpoints
 
-1. Requirements, data audit, and development split (current step).
-2. Shared text preprocessing and submission validation.
-3. BM25 baseline and full-catalog validation.
+1. Requirements, data audit, and development split (complete).
+2. Shared text preprocessing and submission validation (implemented and checked).
+3. BM25 baseline and full-catalog validation (current step).
 4. BM25 field weighting and aggregation comparisons.
 5. Eligible dense model selection and embedding pipeline.
 6. Dense baseline validation and Kaggle prediction.
