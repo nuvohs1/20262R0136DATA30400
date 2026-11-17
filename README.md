@@ -87,6 +87,10 @@ python scripts/validate_submission.py outputs/bm25_v2_expansion/2024320020_final
 
 `bash run_bm25_v2.sh 2024320020 8` runs the data audit, tests, both v2 variants, and submission checks. The final file is `outputs/bm25_v2_expansion/2024320020_final.csv`. The script reports held-out validation for the metadata model with and without review expansion, plus an expansion proxy. It then writes `outputs/bm25_v2/2024320020_final.csv` (or `outputs/bm25_v2_expansion/` with the flag). Label-derived statistics come only from the development-training partition for validation, and from all of `train_gold.json` for test. Details are in [docs/bm25_v2.md](docs/bm25_v2.md).
 
+## Dense retrieval (E5, zero-shot)
+
+Embeddings are computed on a GPU with `notebooks/dense_encode_colab.ipynb` (`scripts/encode_dense.py`, `requirements-dense.txt`). Evaluation, BM25 + dense fusion, and submissions run locally with NumPy: `python scripts/run_dense.py --predict-test --student-id 2024320020 --workers 8`. See [docs/dense_retrieval.md](docs/dense_retrieval.md) for model-eligibility evidence and the protocol.
+
 ## Compare BM25 weighting and review fusion
 
 ```bash
