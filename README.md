@@ -4,7 +4,7 @@ Match five reviews of one product to 10 distinct candidates from the full 50,000
 
 ## Current status
 
-The data audit and fixed development split are complete. The original BM25 remains best after seven configurations, with **36.25% local Recall@10** on 4,000 validation queries against all 50,000 catalog products. The student reported a **0.38120 Kaggle score** for its submission. See [the full BM25 comparison](docs/bm25_tuning.md) and [the original baseline configuration](docs/bm25_baseline.md). Shared preprocessing and submission validation are implemented. Dense retrieval and learning-to-rank are future steps.
+The improved BM25 (BM25F, plural folding, and supervised Robertson–Spärck Jones query weights) reaches **57.83% local Recall@10** on the 4,000 held-out validation queries against all 50,000 products, and **0.57538** on Kaggle. Adding a thresholded bonus from labelled training reviews (review expansion) gives the best Kaggle score so far, **0.60761**. The original BM25 reached 36.25% locally (Kaggle 0.38120). All hyperparameters were chosen on a tuning slice of the development-training partition; validation was evaluated once. See [the BM25 v2 record](docs/bm25_v2.md). The earlier SQLite comparisons are in [the BM25 comparison](docs/bm25_tuning.md) and [the original baseline](docs/bm25_baseline.md). Dense retrieval and learning-to-rank are future steps.
 
 ## Data setup
 
@@ -72,6 +72,20 @@ bash run_bm25.sh --predict-test --student-id YOUR_STUDENT_ID
 ```
 
 Set `PYTHON_BIN` to select another interpreter. On Windows PowerShell, the individual Python commands above work directly.
+
+## Run the improved BM25 (v2)
+
+Requires NumPy (`pip install -r requirements-fast.txt`); SciPy is not used.
+
+```bash
+python scripts/run_bm25_v2.py --predict-test --student-id 2024320020 --workers 8
+python scripts/validate_submission.py outputs/bm25_v2/2024320020_final.csv
+# Final BM25 submission (best Kaggle score, 0.60761): adds labelled-review expansion
+python scripts/run_bm25_v2.py --predict-test --student-id 2024320020 --workers 8 --review-expansion
+python scripts/validate_submission.py outputs/bm25_v2_expansion/2024320020_final.csv
+```
+
+`bash run_bm25_v2.sh 2024320020 8` runs the data audit, tests, both v2 variants, and submission checks. The final file is `outputs/bm25_v2_expansion/2024320020_final.csv`. The script reports held-out validation for the metadata model with and without review expansion, plus an expansion proxy. It then writes `outputs/bm25_v2/2024320020_final.csv` (or `outputs/bm25_v2_expansion/` with the flag). Label-derived statistics come only from the development-training partition for validation, and from all of `train_gold.json` for test. Details are in [docs/bm25_v2.md](docs/bm25_v2.md).
 
 ## Compare BM25 weighting and review fusion
 

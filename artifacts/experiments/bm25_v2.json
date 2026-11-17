@@ -1,0 +1,207 @@
+{
+  "metadata_only": {
+    "method": "BM25F + supervised RSJ query weights + thresholded review expansion",
+    "evaluation": "local development validation; not a Kaggle score",
+    "configuration": {
+      "stem": true,
+      "metadata": {
+        "k1": 2.5,
+        "b": 1.0,
+        "field_weights": [
+          5.0,
+          1.0,
+          1.0,
+          0.5
+        ]
+      },
+      "query": {
+        "mode": "log",
+        "max_document_frequency": 1.0,
+        "max_terms": 128,
+        "term_weight_power": 0.75,
+        "select_by": "weight"
+      },
+      "rsj_prior_strength": 10.0,
+      "review_expansion": {
+        "enabled": false,
+        "k1": 1.2,
+        "b": 0.75,
+        "query": {
+          "mode": "log",
+          "max_terms": 128,
+          "idf_power": 1.0
+        },
+        "weight": 0.3,
+        "threshold": 6.0
+      },
+      "seed": 42
+    },
+    "selected_validation_result": "metadata_rsj",
+    "preprocessing": "nfkc_html_media_lower_alnum_v1",
+    "fields": [
+      "title",
+      "store",
+      "features",
+      "description"
+    ],
+    "validation_queries": 4000,
+    "catalog_products": 50000,
+    "leakage_controls": {
+      "validation_labels_used_for": "metrics only",
+      "rsj_and_expansion_source_for_validation": "16,000 development-training queries",
+      "rsj_and_expansion_source_for_test": "all 20,000 training queries",
+      "hyperparameter_selection": "4,000-query tuning slice of development-training (seed 42); validation untouched"
+    },
+    "results": {
+      "metadata_rsj": {
+        "recall_at_1": 0.2765,
+        "recall_at_5": 0.476,
+        "recall_at_10": 0.57825
+      },
+      "metadata_rsj_review_expansion": {
+        "recall_at_1": 0.245,
+        "recall_at_5": 0.45375,
+        "recall_at_10": 0.5585
+      },
+      "proxy_without_expansion": {
+        "recall_at_10_all": 0.47325,
+        "recall_at_10_expanded_half": 0.4695,
+        "recall_at_10_unexpanded_half": 0.477
+      },
+      "proxy_with_expansion": {
+        "recall_at_10_all": 0.47425,
+        "recall_at_10_expanded_half": 0.4865,
+        "recall_at_10_unexpanded_half": 0.462
+      }
+    },
+    "environment": {
+      "python": "3.15.2",
+      "numpy": "2.5.5",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "git_head_at_run": "48335faa0af60415db9e75112cce41f8f460e5d5"
+    },
+    "source_sha256": {
+      "catalog.json": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+      "train_gold.json": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+      "test_queries.json": "3f175c4a9517df20b15547b04f5ac556ccee56c51862d0ebc0705477429d87a8"
+    },
+    "split_sha256": "d27e8670212d193f55eee5b88510d3ebe109d82d0dd16923fff9ab3fa6eb6d00",
+    "kaggle_recall_at_10": 0.57538,
+    "test_csv": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "3b0c08aa17bdea7ce6f3382efa74efd1c56a776ac56ec69ffd95d15cf6d14d29"
+    },
+    "timing_seconds": {
+      "index_build": 6.043751400000019,
+      "validation": 65.13657980000016,
+      "expansion_proxy": 97.65925630000038,
+      "test": 115.00232219999998,
+      "total": 293.2901918999996
+    }
+  },
+  "review_expansion_final": {
+    "method": "BM25F + supervised RSJ query weights + thresholded review expansion",
+    "evaluation": "local development validation; not a Kaggle score",
+    "configuration": {
+      "stem": true,
+      "metadata": {
+        "k1": 2.5,
+        "b": 1.0,
+        "field_weights": [
+          5.0,
+          1.0,
+          1.0,
+          0.5
+        ]
+      },
+      "query": {
+        "mode": "log",
+        "max_document_frequency": 1.0,
+        "max_terms": 128,
+        "term_weight_power": 0.75,
+        "select_by": "weight"
+      },
+      "rsj_prior_strength": 10.0,
+      "review_expansion": {
+        "enabled": true,
+        "k1": 1.2,
+        "b": 0.75,
+        "query": {
+          "mode": "log",
+          "max_terms": 128,
+          "idf_power": 1.0
+        },
+        "weight": 0.3,
+        "threshold": 6.0
+      },
+      "seed": 42
+    },
+    "selected_validation_result": "metadata_rsj_review_expansion",
+    "preprocessing": "nfkc_html_media_lower_alnum_v1",
+    "fields": [
+      "title",
+      "store",
+      "features",
+      "description"
+    ],
+    "validation_queries": 4000,
+    "catalog_products": 50000,
+    "leakage_controls": {
+      "validation_labels_used_for": "metrics only",
+      "rsj_and_expansion_source_for_validation": "16,000 development-training queries",
+      "rsj_and_expansion_source_for_test": "all 20,000 training queries",
+      "hyperparameter_selection": "4,000-query tuning slice of development-training (seed 42); validation untouched"
+    },
+    "results": {
+      "metadata_rsj": {
+        "recall_at_1": 0.2765,
+        "recall_at_5": 0.476,
+        "recall_at_10": 0.57825
+      },
+      "metadata_rsj_review_expansion": {
+        "recall_at_1": 0.245,
+        "recall_at_5": 0.45375,
+        "recall_at_10": 0.5585
+      },
+      "proxy_without_expansion": {
+        "recall_at_10_all": 0.47325,
+        "recall_at_10_expanded_half": 0.4695,
+        "recall_at_10_unexpanded_half": 0.477
+      },
+      "proxy_with_expansion": {
+        "recall_at_10_all": 0.47425,
+        "recall_at_10_expanded_half": 0.4865,
+        "recall_at_10_unexpanded_half": 0.462
+      }
+    },
+    "environment": {
+      "python": "3.15.2",
+      "numpy": "2.5.5",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "git_head_at_run": "48335faa0af60415db9e75112cce41f8f460e5d5"
+    },
+    "source_sha256": {
+      "catalog.json": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+      "train_gold.json": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+      "test_queries.json": "3f175c4a9517df20b15547b04f5ac556ccee56c51862d0ebc0705477429d87a8"
+    },
+    "split_sha256": "d27e8670212d193f55eee5b88510d3ebe109d82d0dd16923fff9ab3fa6eb6d00",
+    "kaggle_recall_at_10": 0.60761,
+    "test_csv": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "b59baa9096f0e49c9fa632e12c8b99a77eb86ae8c8168cf97b01243a7085b09f"
+    },
+    "timing_seconds": {
+      "index_build": 7.4173241000003145,
+      "validation": 83.71755090000033,
+      "expansion_proxy": 186.22904329999983,
+      "test": 164.73774639999965,
+      "total": 453.14371389999997
+    }
+  },
+  "kaggle_note": "Student-reported scores; leaderboard partition unspecified. Expansion variant is the current best and final BM25 submission."
+}
