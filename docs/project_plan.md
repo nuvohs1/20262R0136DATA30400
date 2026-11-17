@@ -52,8 +52,8 @@ The report must explain the final matching method and design rationale; include 
 
 1. Requirements, data audit, and development split (complete).
 2. Shared text preprocessing and submission validation (implemented and checked).
-3. BM25 baseline and full-catalog validation (current step).
-4. BM25 field weighting and aggregation comparisons.
+3. BM25 baseline and full-catalog validation (complete: local Recall@10 36.25%; Kaggle score pending).
+4. BM25 field weighting and aggregation comparisons (next step).
 5. Eligible dense model selection and embedding pipeline.
 6. Dense baseline validation and Kaggle prediction.
 7. Learning-to-rank training and hard-negative generation.

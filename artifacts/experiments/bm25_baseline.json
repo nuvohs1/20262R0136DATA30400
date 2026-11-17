@@ -1,0 +1,94 @@
+{
+  "method": "BM25",
+  "evaluation": "local development validation; not a Kaggle score",
+  "configuration": {
+    "k1": 1.2,
+    "b": 0.75,
+    "query_tf": "binary",
+    "seed": 42,
+    "backend": "SQLite FTS5; identical read-only index per worker",
+    "workers": 8,
+    "preprocessing": "nfkc_html_media_lower_alnum_v1",
+    "fields": [
+      "title",
+      "store",
+      "features",
+      "description"
+    ],
+    "field_weights": "all 1",
+    "five_reviews": "concatenated",
+    "max_query_terms": 64,
+    "max_document_frequency": 0.2,
+    "query_term_selection": "descending log(1+(N-df+0.5)/(df+0.5)) * (1+log(query_tf)); ties by token",
+    "formula": "idf=ln((N-df+0.5)/(df+0.5)); replace idf<=0 with 1e-6; tf*(k1+1)/(tf+k1*(1-b+b*dl/avgdl))"
+  },
+  "environment": {
+    "python": "3.15.2",
+    "sqlite": "3.53.4",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "git_head_at_run": "63204683fa12dfa96670315550dd02c0e30fb35c",
+    "working_tree_dirty_at_run": true
+  },
+  "source_sha256": {
+    "catalog.json": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+    "train_gold.json": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+    "test_queries.json": "3f175c4a9517df20b15547b04f5ac556ccee56c51862d0ebc0705477429d87a8"
+  },
+  "code_sha256": {
+    "scripts/run_bm25.py": "738bbc64ce47a43c4134e83dfd383c230c35dd321607c9749e1180076678216e",
+    "src/review_retrieval/__init__.py": "4257b65f5871b711cce4c04411df8985e9deac15f677e9e9626fbb5337b9b21b",
+    "src/review_retrieval/bm25.py": "37e8a0cbce743af178b663c3759c8791888185dcad25c7600b1b5ec0f0b4225f",
+    "src/review_retrieval/common.py": "b3657464a0d6b62356fb2eaa95053c77b43ece625bcedf4fb05e5bfa68f7f585"
+  },
+  "split_sha256": "d27e8670212d193f55eee5b88510d3ebe109d82d0dd16923fff9ab3fa6eb6d00",
+  "catalog_products": 50000,
+  "validation_queries": 4000,
+  "vocabulary_size": 100193,
+  "average_document_length": 221.04222,
+  "empty_catalog_documents": 0,
+  "metrics": {
+    "recall_at_1": 0.132,
+    "recall_at_5": 0.28025,
+    "recall_at_10": 0.3625
+  },
+  "diagnostics": {
+    "zero_match_queries": 0
+  },
+  "timing_seconds": {
+    "index_build": 10.348076900001615,
+    "validation_retrieval": 124.23946419998538,
+    "test_retrieval": 597.8769092001021,
+    "total": 735.9080957999686
+  },
+  "validation_csv": {
+    "rows": 4000,
+    "candidates_per_row": 10,
+    "valid": true,
+    "sha256": "79fcf672f0172333008362284663ca4cf1938b190fdfbff64f8dd833f08d2fcc"
+  },
+  "kaggle_recall_at_10": null,
+  "test_csv": {
+    "rows": 19858,
+    "candidates_per_row": 10,
+    "valid": true,
+    "sha256": "9351a3ad2549aafd4592a7dacaea628f21929d9a2db393998f3478775fa2f942"
+  },
+  "test_diagnostics": {
+    "zero_match_queries": 0
+  },
+  "validation_hit_counts": {
+    "1": 528,
+    "5": 1121,
+    "10": 1450
+  },
+  "verification": {
+    "automated_tests_passed": 8,
+    "full_catalog_serial_parallel_first20_equal": true,
+    "aggregate_metrics_recomputed": true,
+    "source_files_match_initial_audit": true,
+    "code_fingerprints_match_checked_files": true,
+    "standalone_test_submission_validator_passed": true
+  },
+  "retrieval_pipeline_external_llm_api_calls": 0
+}
