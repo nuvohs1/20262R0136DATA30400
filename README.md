@@ -4,7 +4,7 @@ Match five reviews of one product to 10 distinct candidates from the full 50,000
 
 ## Current status
 
-The data audit and fixed development split are complete. The initial BM25 baseline achieves **36.25% local Recall@10** on 4,000 validation queries against all 50,000 catalog products. Shared text preprocessing and strict submission validation are implemented. No Kaggle scores are available yet. Dense retrieval and learning-to-rank are future steps. See [the baseline results and configuration](docs/bm25_baseline.md).
+The data audit and fixed development split are complete. The initial BM25 baseline achieves **36.25% local Recall@10** on 4,000 validation queries against all 50,000 catalog products. The student reported a **0.38120 Kaggle score** for its submission. Shared text preprocessing and strict submission validation are implemented. Dense retrieval and learning-to-rank are future steps. See [the baseline results and configuration](docs/bm25_baseline.md).
 
 ## Data setup
 
@@ -72,6 +72,18 @@ bash run_bm25.sh --predict-test --student-id YOUR_STUDENT_ID
 ```
 
 Set `PYTHON_BIN` to select another interpreter. On Windows PowerShell, the individual Python commands above work directly.
+
+## Compare BM25 weighting and review fusion
+
+```bash
+python scripts/tune_bm25.py --predict-test --student-id 2024320020 --workers 8
+```
+
+This compares the original equal-field baseline, field weights `(4, 2, 2, 1)`, and title-emphasis weights `(8, 3, 2, 1)` in title/store/features/description order. On the best concatenated-query configuration, it compares equal-weight reciprocal rank fusion of the five individual review lists with a hybrid fusion that also includes the concatenated query at weight two. All retrieval searches the full catalog; fusion uses the first 100 matches of each view with RRF constant 60. Individual review queries retain up to 24 selected terms; the concatenated view retains up to 64. This is a comparison of complete aggregation configurations, not an isolated test of fusion alone.
+
+The separate-field implementation uses SQLite BM25 column weights on term frequency before saturation; document length remains the unweighted sum of all fields. This is not independent per-field length normalization. A rank-sorted cursor with explicit cutoff-tie expansion preserves deterministic product-ID tie-breaking.
+
+Results are saved incrementally under `outputs/bm25_tuning/`, separately from the original baseline. The method is selected by local Recall@10, then Recall@1, then the earlier configuration on ties, before accessing test predictions. Only that method generates `outputs/bm25_tuning/2024320020_final.csv`. Add `--resume` to reuse validation checkpoints only when source, code, split, configuration, and prediction fingerprints match. If verified baseline predictions are already present, the script reuses them after checking twenty actual queries for equal-field equivalence; otherwise it recomputes the baseline. The script does not submit to Kaggle.
 
 ## Evaluation protocol
 

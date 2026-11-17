@@ -52,8 +52,8 @@ The report must explain the final matching method and design rationale; include 
 
 1. Requirements, data audit, and development split (complete).
 2. Shared text preprocessing and submission validation (implemented and checked).
-3. BM25 baseline and full-catalog validation (complete: local Recall@10 36.25%; Kaggle score pending).
-4. BM25 field weighting and aggregation comparisons (next step).
+3. BM25 baseline and full-catalog validation (complete: local Recall@10 36.25%; user-reported Kaggle score 0.38120).
+4. BM25 field weighting and aggregation comparisons (current step).
 5. Eligible dense model selection and embedding pipeline.
 6. Dense baseline validation and Kaggle prediction.
 7. Learning-to-rank training and hard-negative generation.
@@ -61,5 +61,5 @@ The report must explain the final matching method and design rationale; include 
 9. Final selection, reproducibility runner, and submission checks.
 10. Case studies, report, and final reproduction documentation.
 
-These are substantive checkpoints, not a reason to create empty or artificial commits. Steps may be adjusted based on measured results. Course template, Kaggle competition URL, assigned User ID, student ID, and compute resources still need to be confirmed before their dependent tasks.
+These are substantive checkpoints, not a reason to create empty or artificial commits. Steps may be adjusted based on measured results. Student ID: 2024320020. Course template, Kaggle competition URL, assigned User ID, and compute resources for neural models still need to be confirmed before their dependent tasks. The student handles Kaggle uploads.
 

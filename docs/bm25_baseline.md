@@ -6,11 +6,11 @@ The fixed development split contains 4,000 validation queries. Every query searc
 
 | Method | Recall@1 | Recall@5 | Recall@10 | Kaggle Recall@10 |
 | --- | ---: | ---: | ---: | --- |
-| BM25 with catalog-derived query filtering | 13.20% | 28.025% | 36.25% | Not submitted |
+| BM25 with catalog-derived query filtering | 13.20% | 28.025% | 36.25% | 0.38120 |
 
 The correct product is among the first ten candidates for 1,450 of 4,000 validation queries. There are 528 rank-one hits and 1,121 top-five hits. The first twenty full-catalog parallel predictions exactly match the earlier serial smoke-check predictions. Eight automated checks cover numerical BM25 correctness, preprocessing, common-term scoring, deterministic ties, query filtering, submission rejection, zero-match behavior, and serial/parallel equivalence.
 
-These are local development scores. No leaderboard score has been observed, and the baseline has not been selected as the final solution. Dense retrieval and fine-tuning with learning-to-rank have not yet been evaluated.
+The Kaggle score of 0.38120 was reported by the student after submitting the generated baseline file. It has not been independently checked through Kaggle, and the leaderboard partition was not specified. The other scores are local development scores. The baseline has not been selected as the final solution. Dense retrieval and fine-tuning with learning-to-rank have not yet been evaluated.
 
 ## Configuration
 
