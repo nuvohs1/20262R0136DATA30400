@@ -1,10 +1,24 @@
 """SQLite FTS5 BM25: a local full-catalog baseline with no external packages."""
 
 from collections import Counter
+from concurrent.futures import ProcessPoolExecutor
 import math
+from pathlib import Path
 import sqlite3
 
 from .common import product_tokens, query_tokens
+
+
+_WORKER_MODEL = None
+
+
+def _initialize_worker(index_path, max_query_terms, max_document_frequency):
+    global _WORKER_MODEL
+    _WORKER_MODEL = BM25.open_index(index_path, max_query_terms, max_document_frequency)
+
+
+def _search_batch(queries):
+    return _WORKER_MODEL.search(queries)
 
 
 class BM25:
@@ -76,6 +90,43 @@ class BM25:
             if progress:
                 progress(count, len(queries))
         return predictions, {"zero_match_queries": zero_match_queries}
+
+    def save_index(self, path):
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        destination = sqlite3.connect(str(path))
+        try:
+            self.connection.backup(destination)
+        finally:
+            destination.close()
+
+    @classmethod
+    def open_index(cls, path, max_query_terms=64, max_document_frequency=0.2):
+        model = cls.__new__(cls)
+        model.max_query_terms = max_query_terms
+        model.max_document_frequency = max_document_frequency
+        model.connection = sqlite3.connect(Path(path).resolve().as_uri() + "?mode=ro", uri=True)
+        model.connection.execute("PRAGMA mmap_size=268435456")
+        model.item_ids = [row[0] for row in model.connection.execute("SELECT item_id FROM products ORDER BY item_id")]
+        model.document_frequency = dict(model.connection.execute("SELECT term, doc FROM vocabulary"))
+        return model
+
+    def search_parallel(self, queries, index_path, workers=8, progress=None):
+        if workers < 1:
+            raise ValueError("Worker count must be positive")
+        if workers == 1:
+            return self.search(queries, progress=progress)
+        predictions, zero_matches = [], 0
+        batches = (queries[start:start + 32] for start in range(0, len(queries), 32))
+        with ProcessPoolExecutor(max_workers=workers, initializer=_initialize_worker,
+                                 initargs=(str(Path(index_path).resolve()), self.max_query_terms,
+                                           self.max_document_frequency)) as executor:
+            for batch_predictions, diagnostics in executor.map(_search_batch, batches):
+                predictions.extend(batch_predictions)
+                zero_matches += diagnostics["zero_match_queries"]
+                if progress:
+                    progress(len(predictions), len(queries))
+        return predictions, {"zero_match_queries": zero_matches}
 
     def close(self):
         self.connection.close()

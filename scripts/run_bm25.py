@@ -3,6 +3,7 @@
 import argparse
 from collections import defaultdict
 import platform
+import os
 from pathlib import Path
 import random
 import sqlite3
@@ -25,11 +26,14 @@ def main():
     parser.add_argument("--validation-limit", type=int, help="Smoke check only; omit for the full 4,000-query evaluation")
     parser.add_argument("--max-query-terms", type=int, default=64, help="0 disables term-count pruning")
     parser.add_argument("--max-document-frequency", type=float, default=0.2)
+    parser.add_argument("--workers", type=int, default=min(8, os.cpu_count() or 1))
     parser.add_argument("--predict-test", action="store_true")
     parser.add_argument("--student-id", help="Required with --predict-test; used only for the CSV filename")
     args = parser.parse_args()
     if args.validation_limit is not None and args.validation_limit < 1:
         parser.error("--validation-limit must be positive")
+    if args.workers < 1:
+        parser.error("--workers must be positive")
     if args.predict_test and (not args.student_id or not args.student_id.isalnum()):
         parser.error("--predict-test requires an alphanumeric --student-id")
     random.seed(42)
@@ -59,14 +63,17 @@ def main():
     print("Building full-catalog BM25 index...", flush=True)
     build_start = time.perf_counter()
     model = BM25(catalog, args.max_query_terms, args.max_document_frequency)
+    index_path = args.output_dir / "catalog_bm25.sqlite3"
+    if args.workers > 1:
+        model.save_index(index_path)
     build_seconds = time.perf_counter() - build_start
 
     def progress(done, total):
-        if done == total or done % 200 == 0:
+        if done == total or done % 320 == 0:
             print(f"Retrieved {done:,}/{total:,} queries", flush=True)
 
     query_start = time.perf_counter()
-    predictions, diagnostics = model.search(validation, progress=progress)
+    predictions, diagnostics = model.search_parallel(validation, index_path, args.workers, progress)
     retrieval_seconds = time.perf_counter() - query_start
     validation_check = write_submission(args.output_dir / "validation_predictions.csv",
                                         valid_ids, predictions, model.item_ids)
@@ -84,7 +91,8 @@ def main():
     metrics = {
         "method": "BM25", "evaluation": "local development validation; not a Kaggle score",
         "configuration": {"k1": 1.2, "b": 0.75, "query_tf": "binary", "seed": 42,
-                          "backend": "SQLite FTS5; in-memory index",
+                          "backend": "SQLite FTS5; identical read-only index per worker",
+                          "workers": args.workers,
                           "preprocessing": PREPROCESSING_VERSION, "fields": list(TEXT_FIELDS),
                           "field_weights": "all 1", "five_reviews": "concatenated",
                           "max_query_terms": args.max_query_terms,
@@ -114,7 +122,7 @@ def main():
         if len(test) != 19_858 or any("item_id" in q or "category_path" in q for q in test):
             raise ValueError("Expected 19,858 unlabeled test queries")
         test_start = time.perf_counter()
-        test_predictions, test_diagnostics = model.search(test, progress=progress)
+        test_predictions, test_diagnostics = model.search_parallel(test, index_path, args.workers, progress)
         submission = args.output_dir / f"{args.student_id}_final.csv"
         metrics["test_csv"] = write_submission(submission, [q["query_id"] for q in test], test_predictions, model.item_ids)
         metrics["test_diagnostics"] = test_diagnostics

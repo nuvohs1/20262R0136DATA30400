@@ -46,7 +46,7 @@ python -m unittest discover -s tests -v
 python scripts/run_bm25.py
 ```
 
-The default command evaluates all 4,000 validation queries against all 50,000 products. It writes metrics, per-category results, validation rankings, and ID-only success/failure records under `outputs/bm25_baseline/`. That directory stays local. Metrics include code and input fingerprints, Python/SQLite versions, timings, and the exact configuration.
+The default command evaluates all 4,000 validation queries against all 50,000 products. It uses up to eight CPU worker processes reading the same local SQLite index; pass `--workers 1` for serial execution. It writes metrics, per-category results, validation rankings, and ID-only success/failure records under `outputs/bm25_baseline/`. That directory, including the generated catalog index, stays local. The index contains only product metadata. Metrics include code and input fingerprints, Python/SQLite versions, timings, and the exact configuration. Tests verify that serial and parallel rankings match.
 
 The preprocessing applies Unicode NFKC normalization, HTML unescaping, tag/media-placeholder removal, lowercasing, and ASCII letter/digit tokenization. Numbers are retained; hyphens split tokens. All four metadata fields have equal weight. All five review texts are concatenated; ratings, helpfulness, timestamps, verified-purchase flags, IDs, and category labels are not retrieval features.
 

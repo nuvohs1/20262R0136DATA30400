@@ -116,6 +116,16 @@ class RetrievalTests(unittest.TestCase):
         self.assertEqual(predictions[0], sorted(model.item_ids)[:10])
         model.close()
 
+    def test_parallel_and_serial_predictions_match(self):
+        model = BM25(self.catalog, max_query_terms=0, max_document_frequency=1)
+        queries = [query("blue plate"), query("cup bowl"), query("unknownword")] * 23
+        expected = model.search(queries)
+        with temporary_directory() as directory:
+            path = directory / "index.sqlite3"
+            model.save_index(path)
+            self.assertEqual(model.search_parallel(queries, path, workers=2), expected)
+        model.close()
+
 
 if __name__ == "__main__":
     unittest.main()
