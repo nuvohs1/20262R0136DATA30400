@@ -4,7 +4,7 @@ Match five reviews of one product to 10 distinct candidates from the full 50,000
 
 ## Current status
 
-The data audit and fixed development split are complete. The initial BM25 baseline achieves **36.25% local Recall@10** on 4,000 validation queries against all 50,000 catalog products. The student reported a **0.38120 Kaggle score** for its submission. Shared text preprocessing and strict submission validation are implemented. Dense retrieval and learning-to-rank are future steps. See [the baseline results and configuration](docs/bm25_baseline.md).
+The data audit and fixed development split are complete. The original BM25 remains best after seven configurations, with **36.25% local Recall@10** on 4,000 validation queries against all 50,000 catalog products. The student reported a **0.38120 Kaggle score** for its submission. See [the full BM25 comparison](docs/bm25_tuning.md) and [the original baseline configuration](docs/bm25_baseline.md). Shared preprocessing and submission validation are implemented. Dense retrieval and learning-to-rank are future steps.
 
 ## Data setup
 

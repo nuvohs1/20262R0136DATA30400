@@ -1,0 +1,335 @@
+{
+  "source_sha256": {
+    "catalog.json": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+    "train_gold.json": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+    "test_queries.json": "3f175c4a9517df20b15547b04f5ac556ccee56c51862d0ebc0705477429d87a8"
+  },
+  "split_sha256": "d27e8670212d193f55eee5b88510d3ebe109d82d0dd16923fff9ab3fa6eb6d00",
+  "preceding_stage_code_sha256": {
+    "scripts/tune_bm25.py": "76934af5733f96ac3dbbf4875157967c67690676919d26da35ff81a0c151a203",
+    "src/review_retrieval/bm25_variants.py": "32803ccafe73e60a4139bf93f0a3e80277867898deba2fa8c5df7c0db1944af4",
+    "src/review_retrieval/common.py": "b3657464a0d6b62356fb2eaa95053c77b43ece625bcedf4fb05e5bfa68f7f585"
+  },
+  "additional_stage_code_sha256": {
+    "scripts/finish_bm25.py": "2ebbe0c6a751f0cef4be7e3da1f92720ef8da03909fa7d2adcecdd361e8fecd5",
+    "src/review_retrieval/bm25_query_variants.py": "b35a7c9e8fff79040b4f3a7b4cf34586efb705d0b2ef826a2eff23671a6ef74a",
+    "src/review_retrieval/bm25_variants.py": "32803ccafe73e60a4139bf93f0a3e80277867898deba2fa8c5df7c0db1944af4",
+    "src/review_retrieval/common.py": "b3657464a0d6b62356fb2eaa95053c77b43ece625bcedf4fb05e5bfa68f7f585"
+  },
+  "preceding_stage_environment": {
+    "python": "3.15.2",
+    "sqlite": "3.53.4",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "workers": 8
+  },
+  "additional_stage_environment": {
+    "python": "3.15.2",
+    "sqlite": "3.53.4",
+    "workers": 16,
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "catalog_products": 50000,
+  "validation_queries": 4000,
+  "pipeline_external_llm_api_calls": 0,
+  "selection_criterion": "local Recall@10, then Recall@1, then earlier simpler configuration",
+  "runs": [
+    {
+      "name": "baseline",
+      "mode": "concat",
+      "configuration": {
+        "field_weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "max_query_terms": 64,
+        "max_document_frequency": 0.2,
+        "review_terms": 24,
+        "fusion_depth": 100,
+        "rrf_constant": 60,
+        "concat_weight": 2
+      },
+      "metrics": {
+        "recall_at_1": 0.132,
+        "recall_at_5": 0.28025,
+        "recall_at_10": 0.3625
+      },
+      "retrieval_seconds": 124.23946419998538,
+      "zero_match_queries": 0,
+      "provenance": "verified original baseline predictions",
+      "validation_csv": {
+        "rows": 4000,
+        "candidates_per_row": 10,
+        "valid": true,
+        "sha256": "79fcf672f0172333008362284663ca4cf1938b190fdfbff64f8dd833f08d2fcc"
+      },
+      "signature": "72e5f3cef5ae5517ac3ca16444a762402ec3d74e1bfd300001017ec4cfbb7db8",
+      "kaggle_recall_at_10": 0.3812,
+      "hits_at_10": 1450,
+      "gained_vs_baseline": 0,
+      "lost_vs_baseline": 0,
+      "implementation_stage": "field_weighting_and_fusion"
+    },
+    {
+      "name": "field_weighted",
+      "mode": "concat",
+      "configuration": {
+        "field_weights": [
+          4.0,
+          2.0,
+          2.0,
+          1.0
+        ],
+        "max_query_terms": 64,
+        "max_document_frequency": 0.2,
+        "review_terms": 24,
+        "fusion_depth": 100,
+        "rrf_constant": 60,
+        "concat_weight": 2
+      },
+      "metrics": {
+        "recall_at_1": 0.13125,
+        "recall_at_5": 0.265,
+        "recall_at_10": 0.3495
+      },
+      "retrieval_seconds": 140.2347068999661,
+      "zero_match_queries": 0,
+      "provenance": "full validation retrieval",
+      "validation_csv": {
+        "rows": 4000,
+        "candidates_per_row": 10,
+        "valid": true,
+        "sha256": "d2d3d12b08859755f3350c4a6385cf4943990f6880adb558c331c368f4f8ae6d"
+      },
+      "signature": "dc7c05fdf053ef3b952f9a044c5bf4bef7ab4448dea4d40c01a3b01062f99599",
+      "kaggle_recall_at_10": null,
+      "hits_at_10": 1398,
+      "gained_vs_baseline": 86,
+      "lost_vs_baseline": 138,
+      "implementation_stage": "field_weighting_and_fusion"
+    },
+    {
+      "name": "title_emphasis",
+      "mode": "concat",
+      "configuration": {
+        "field_weights": [
+          8.0,
+          3.0,
+          2.0,
+          1.0
+        ],
+        "max_query_terms": 64,
+        "max_document_frequency": 0.2,
+        "review_terms": 24,
+        "fusion_depth": 100,
+        "rrf_constant": 60,
+        "concat_weight": 2
+      },
+      "metrics": {
+        "recall_at_1": 0.13375,
+        "recall_at_5": 0.26975,
+        "recall_at_10": 0.357
+      },
+      "retrieval_seconds": 140.0890786999371,
+      "zero_match_queries": 0,
+      "provenance": "full validation retrieval",
+      "validation_csv": {
+        "rows": 4000,
+        "candidates_per_row": 10,
+        "valid": true,
+        "sha256": "460b8064de7e7f46789f51a96108227b72a8da8af7b39f861f3f4480d0b6dda5"
+      },
+      "signature": "5a67b4e840aadd038fedd6cf8064914d3a80f510402f3ac0b17b4dcc40c90ee8",
+      "kaggle_recall_at_10": null,
+      "hits_at_10": 1428,
+      "gained_vs_baseline": 118,
+      "lost_vs_baseline": 140,
+      "implementation_stage": "field_weighting_and_fusion"
+    },
+    {
+      "name": "review_rrf",
+      "mode": "review_rrf",
+      "configuration": {
+        "field_weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "max_query_terms": 64,
+        "max_document_frequency": 0.2,
+        "review_terms": 24,
+        "fusion_depth": 100,
+        "rrf_constant": 60,
+        "concat_weight": 2
+      },
+      "metrics": {
+        "recall_at_1": 0.0735,
+        "recall_at_5": 0.19125,
+        "recall_at_10": 0.27725
+      },
+      "retrieval_seconds": 345.6320679000346,
+      "zero_match_queries": 0,
+      "provenance": "shared six-view retrieval; wall time shared between the two fusion variants",
+      "validation_csv": {
+        "rows": 4000,
+        "candidates_per_row": 10,
+        "valid": true,
+        "sha256": "85e12651035e57f9f5cf14a1cf96b221e889c9a06197c331a1321fa0c38dee24"
+      },
+      "signature": "5ba05630ca5730e77e612602a6e3da2423f100f72df97fedee5cfc4915d41153",
+      "kaggle_recall_at_10": null,
+      "hits_at_10": 1109,
+      "gained_vs_baseline": 218,
+      "lost_vs_baseline": 559,
+      "implementation_stage": "field_weighting_and_fusion"
+    },
+    {
+      "name": "hybrid_rrf",
+      "mode": "hybrid_rrf",
+      "configuration": {
+        "field_weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "max_query_terms": 64,
+        "max_document_frequency": 0.2,
+        "review_terms": 24,
+        "fusion_depth": 100,
+        "rrf_constant": 60,
+        "concat_weight": 2
+      },
+      "metrics": {
+        "recall_at_1": 0.08175,
+        "recall_at_5": 0.23225,
+        "recall_at_10": 0.33525
+      },
+      "retrieval_seconds": 345.6320679000346,
+      "zero_match_queries": 0,
+      "provenance": "shared six-view retrieval; wall time shared between the two fusion variants",
+      "validation_csv": {
+        "rows": 4000,
+        "candidates_per_row": 10,
+        "valid": true,
+        "sha256": "d2642fabf0e2b4251c22b2be3b476346bd1642cb6d82989094e121adee52204c"
+      },
+      "signature": "79038f09e81c6bef7c658b64e9f651f0fff7684217392029f1bcfc0514d34b1a",
+      "kaggle_recall_at_10": null,
+      "hits_at_10": 1341,
+      "gained_vs_baseline": 190,
+      "lost_vs_baseline": 299,
+      "implementation_stage": "field_weighting_and_fusion"
+    },
+    {
+      "name": "query_128",
+      "mode": "concat",
+      "configuration": {
+        "field_weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "max_query_terms": 128,
+        "max_document_frequency": 0.2,
+        "review_terms": 24,
+        "fusion_depth": 100,
+        "rrf_constant": 60,
+        "concat_weight": 2,
+        "query_tf": "binary"
+      },
+      "metrics": {
+        "recall_at_1": 0.1145,
+        "recall_at_5": 0.2465,
+        "recall_at_10": 0.323
+      },
+      "retrieval_seconds": 358.1554030000698,
+      "zero_match_queries": 0,
+      "validation_csv": {
+        "rows": 4000,
+        "candidates_per_row": 10,
+        "valid": true,
+        "sha256": "c4e0b0425de11c7ea0f00b4668d34968508a48e9a4eafe3bbeb07d8215c53937"
+      },
+      "signature": "6185d7c6457cd28a36ca175483f36b5c427147b6fa71ef85ce42fb38e8a91880",
+      "kaggle_recall_at_10": null,
+      "implementation_stage": "query_length_and_frequency",
+      "hits_at_10": 1292,
+      "gained_vs_baseline": 164,
+      "lost_vs_baseline": 322
+    },
+    {
+      "name": "query_log_tf",
+      "mode": "concat",
+      "configuration": {
+        "field_weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "max_query_terms": 64,
+        "max_document_frequency": 0.2,
+        "review_terms": 24,
+        "fusion_depth": 100,
+        "rrf_constant": 60,
+        "concat_weight": 2,
+        "query_tf": "log_count"
+      },
+      "metrics": {
+        "recall_at_1": 0.1225,
+        "recall_at_5": 0.26025,
+        "recall_at_10": 0.34425
+      },
+      "retrieval_seconds": 197.453833400039,
+      "zero_match_queries": 0,
+      "validation_csv": {
+        "rows": 4000,
+        "candidates_per_row": 10,
+        "valid": true,
+        "sha256": "2a754fdda64052ea28c24209fa9d99d620e71f45a039a5e8a89ae5dc68d88db3"
+      },
+      "signature": "887733b3a69e2a10c790f757fdefafd0d72d023d5b878454b8d8eff1d7e34f7e",
+      "kaggle_recall_at_10": null,
+      "implementation_stage": "query_length_and_frequency",
+      "hits_at_10": 1377,
+      "gained_vs_baseline": 178,
+      "lost_vs_baseline": 251
+    }
+  ],
+  "selected": "baseline",
+  "selection_completed_before_test_retrieval": true,
+  "baseline_kaggle_recall_at_10": 0.3812,
+  "baseline_kaggle_score_provenance": "student-reported; not used for method selection",
+  "test_prediction_provenance": "reused verified original baseline file; selected method unchanged",
+  "test_csv": {
+    "rows": 19858,
+    "candidates_per_row": 10,
+    "valid": true,
+    "sha256": "9351a3ad2549aafd4592a7dacaea628f21929d9a2db393998f3478775fa2f942"
+  },
+  "additional_stage_total_seconds": 574.9882536999648,
+  "verification": {
+    "validation_rankings_recomputed_for": [
+      "baseline",
+      "field_weighted",
+      "title_emphasis",
+      "review_rrf",
+      "hybrid_rrf",
+      "query_128",
+      "query_log_tf"
+    ],
+    "all_source_and_code_fingerprints_verified": true,
+    "selected_submission_identical_to_original_baseline": true,
+    "standalone_submission_validator_passed": true,
+    "automated_tests_passed_with_optional_numpy": 18
+  },
+  "implementation_commits": {
+    "field_and_fusion": "839f1cd",
+    "query_variants_and_optional_arrays": "3756aac"
+  }
+}

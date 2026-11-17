@@ -41,6 +41,6 @@ The recorded eight-worker CPU run took about 10 seconds to build and save the in
 
 ## Next comparisons
 
-The next BM25 experiments should compare metadata field weighting, query term selection, and aggregating review-level scores against this fixed baseline. Keep the development split and all 50,000 candidate products unchanged. Do not treat category-level differences as stable estimates: the 500 categories contain only 4 to 38 validation queries each.
+The subsequent [seven-configuration comparison](bm25_tuning.md) tested metadata field weighting, query term selection, query frequency, and review-level rank fusion. The original baseline remained best. The development split and all 50,000 candidate products were unchanged. Do not treat category-level differences as stable estimates: the 500 categories contain only 4 to 38 validation queries each.
 
 Select one successful and one failed query for a later local case study using `validation_cases.json`. Inspect the original reviews locally; that file intentionally stores IDs and ranks rather than review text.

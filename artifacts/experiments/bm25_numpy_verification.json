@@ -1,0 +1,85 @@
+{
+  "numpy": "2.5.5",
+  "checks": [
+    {
+      "name": "baseline",
+      "configuration": {
+        "field_weights": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "max_query_terms": 64,
+        "query_tf": "binary"
+      },
+      "validation_csv": {
+        "rows": 4000,
+        "candidates_per_row": 10,
+        "valid": true,
+        "sha256": "79fcf672f0172333008362284663ca4cf1938b190fdfbff64f8dd833f08d2fcc"
+      },
+      "full_validation_equal_to_sqlite": true,
+      "seconds": 49.91059919993859,
+      "sqlite_near_tie_fallback_queries": 211
+    },
+    {
+      "name": "query_128",
+      "configuration": {
+        "field_weights": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "max_query_terms": 128,
+        "query_tf": "binary"
+      },
+      "validation_csv": {
+        "rows": 4000,
+        "candidates_per_row": 10,
+        "valid": true,
+        "sha256": "c4e0b0425de11c7ea0f00b4668d34968508a48e9a4eafe3bbeb07d8215c53937"
+      },
+      "full_validation_equal_to_sqlite": true,
+      "seconds": 53.22733360005077,
+      "sqlite_near_tie_fallback_queries": 271
+    },
+    {
+      "name": "query_log_tf",
+      "configuration": {
+        "field_weights": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "max_query_terms": 64,
+        "query_tf": "log_count"
+      },
+      "validation_csv": {
+        "rows": 4000,
+        "candidates_per_row": 10,
+        "valid": true,
+        "sha256": "2a754fdda64052ea28c24209fa9d99d620e71f45a039a5e8a89ae5dc68d88db3"
+      },
+      "full_validation_equal_to_sqlite": true,
+      "seconds": 32.68992120004259,
+      "sqlite_near_tie_fallback_queries": 230
+    }
+  ],
+  "source_sha256": {
+    "catalog.json": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+    "train_gold.json": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+    "test_queries.json": "3f175c4a9517df20b15547b04f5ac556ccee56c51862d0ebc0705477429d87a8"
+  },
+  "split_sha256": "d27e8670212d193f55eee5b88510d3ebe109d82d0dd16923fff9ab3fa6eb6d00",
+  "code_sha256": {
+    "scripts/fast_bm25_prediction.py": "de0ea8111893285d7217b9183604adaee2ff197dacffb7d9f64cdd1c68decaef",
+    "src/review_retrieval/bm25_numpy.py": "e9b840dcb48bffabad03fd8206d7274ece9049a9b4a5d201986889093146ddf8",
+    "src/review_retrieval/bm25_query_variants.py": "b35a7c9e8fff79040b4f3a7b4cf34586efb705d0b2ef826a2eff23671a6ef74a",
+    "src/review_retrieval/bm25_variants.py": "32803ccafe73e60a4139bf93f0a3e80277867898deba2fa8c5df7c0db1944af4",
+    "src/review_retrieval/common.py": "b3657464a0d6b62356fb2eaa95053c77b43ece625bcedf4fb05e5bfa68f7f585"
+  },
+  "scope": "validation equivalence only; no accelerated test submission needed because baseline retained"
+}
