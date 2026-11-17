@@ -1,0 +1,2 @@
+# Optional acceleration only; the SQLite pipeline requires no packages.
+numpy==2.5.5

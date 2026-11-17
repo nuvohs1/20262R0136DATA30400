@@ -76,14 +76,21 @@ Set `PYTHON_BIN` to select another interpreter. On Windows PowerShell, the indiv
 ## Compare BM25 weighting and review fusion
 
 ```bash
-python scripts/tune_bm25.py --predict-test --student-id 2024320020 --workers 8
+python scripts/tune_bm25.py --workers 8
+python scripts/finish_bm25.py --predict-test --student-id 2024320020 --workers 16
 ```
 
 This compares the original equal-field baseline, field weights `(4, 2, 2, 1)`, and title-emphasis weights `(8, 3, 2, 1)` in title/store/features/description order. On the best concatenated-query configuration, it compares equal-weight reciprocal rank fusion of the five individual review lists with a hybrid fusion that also includes the concatenated query at weight two. All retrieval searches the full catalog; fusion uses the first 100 matches of each view with RRF constant 60. Individual review queries retain up to 24 selected terms; the concatenated view retains up to 64. This is a comparison of complete aggregation configurations, not an isolated test of fusion alone.
 
 The separate-field implementation uses SQLite BM25 column weights on term frequency before saturation; document length remains the unweighted sum of all fields. This is not independent per-field length normalization. A rank-sorted cursor with explicit cutoff-tie expansion preserves deterministic product-ID tie-breaking.
 
-Results are saved incrementally under `outputs/bm25_tuning/`, separately from the original baseline. The method is selected by local Recall@10, then Recall@1, then the earlier configuration on ties, before accessing test predictions. Only that method generates `outputs/bm25_tuning/2024320020_final.csv`. Add `--resume` to reuse validation checkpoints only when source, code, split, configuration, and prediction fingerprints match. If verified baseline predictions are already present, the script reuses them after checking twenty actual queries for equal-field equivalence; otherwise it recomputes the baseline. The script does not submit to Kaggle.
+The second command adds two controlled query comparisons with equal field weights: up to 128 distinct terms with binary frequency, and up to 64 distinct terms with query count weight `min(4, 1 + floor(log2(count)))`. FTS5 repeated OR phrases implement the integer query weights; automated tests check the score multiplication. This is a quantized logarithmic query weight, not an exact floating-point log-frequency factor.
+
+Results are saved incrementally under `outputs/bm25_tuning/`, separately from the original baseline. The method is selected by local Recall@10, then Recall@1, then the earlier configuration on ties, before accessing test predictions. Only that method generates `outputs/bm25_tuning/2024320020_final.csv`. Add `--resume` to either command to reuse validation checkpoints only when source, code, split, configuration, and prediction fingerprints match. If verified baseline predictions are already present, the first script reuses them after checking twenty actual queries for equal-field equivalence; otherwise it recomputes the baseline. If the baseline remains selected, the second script reuses the verified original test file. Neither command submits to Kaggle.
+
+The full audit, tests, seven-method comparison, and selected test prediction can also be reproduced with `bash run_bm25_tuning.sh 2024320020 8`. The last argument controls local worker count; reduce it for a machine with fewer CPU cores. The recorded run used eight workers for the field/fusion comparisons and sixteen for the two query comparisons.
+
+An optional NumPy core scorer is provided to avoid repeatedly calculating the same document-term BM25 contributions. After the SQLite comparisons are complete, install `requirements-fast.txt` and run `python scripts/fast_bm25_prediction.py --predict-test --workers 8`. It checks all 4,000 validation rankings for the baseline and the two query variants against the SQLite CSVs, and requires an exact full-validation match for the selected method before generating `outputs/bm25_tuning/fast/2024320020_final.csv`. Close-score cases use the SQLite reference to preserve tie order. It uses no NumPy random sampling or SciPy. The package-free SQLite pipeline above remains sufficient for reproduction.
 
 ## Evaluation protocol
 
