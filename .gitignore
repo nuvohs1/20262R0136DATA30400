@@ -1,0 +1,15 @@
+.tools/
+.venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+tmp/
+project_release/*.json
+project_release/*.txt
+final_project.pdf
+outputs/
+checkpoints/
+*.pt
+*.pth
+*.safetensors
+
