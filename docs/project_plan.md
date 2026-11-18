@@ -55,8 +55,8 @@ The report must explain the final matching method and design rationale; include 
 3. BM25 baseline and full-catalog validation (complete: local Recall@10 36.25%; user-reported Kaggle score 0.38120).
 4. BM25 field weighting, review aggregation, and query comparisons (complete: seven configurations; original baseline retained).
    - BM25 v2 (complete: BM25F k1 2.5 / b 1.0, plural folding, supervised RSJ query weights; held-out local Recall@10 57.83%; Kaggle 0.57538. With labelled-review expansion: Kaggle 0.60761, current best).
-5. Eligible dense model selection and embedding pipeline (next step).
-6. Dense baseline validation and Kaggle prediction.
+5. Eligible dense model selection and embedding pipeline (complete: intfloat/e5-base-v2, zero-shot, revision pinned).
+6. Dense baseline validation and Kaggle prediction (complete locally: dense 46.23%, BM25+dense hybrid 61.95%; Kaggle pending).
 7. Learning-to-rank training and hard-negative generation.
 8. Ranking validation and ablation comparisons.
 9. Final selection, reproducibility runner, and submission checks.

@@ -40,7 +40,7 @@ from review_retrieval.common import read_json, sha256, write_json, write_submiss
 from review_retrieval.sparse_bm25 import product_field_tokens, review_token_lists, top_k
 from run_bm25_v2 import CONFIG as BM25_CONFIG, with_expansion, without_expansion
 
-ALPHAS = (0.0, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0)
+ALPHAS = (0.0, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 7.0, 10.0)
 
 _W = {}
 

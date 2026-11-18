@@ -68,6 +68,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--data-dir", type=Path, default=ROOT / "project_release")
     parser.add_argument("--model", default="intfloat/e5-base-v2")
+    parser.add_argument("--revision", default="f52bf8ec8c7124536f0efb74aca902b2995e5bcd",
+                        help="Hugging Face commit of the model (pinned for reproducibility)")
     parser.add_argument("--tag", default="e5-base-v2")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "outputs/dense")
     parser.add_argument("--passage-max-length", type=int, default=256)
@@ -82,9 +84,9 @@ def main():
     out_dir = args.output_dir / args.tag
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
-    model = AutoModel.from_pretrained(args.model).to(device).eval()
-    revision = getattr(model.config, "_commit_hash", None)
+    tokenizer = AutoTokenizer.from_pretrained(args.model, revision=args.revision)
+    model = AutoModel.from_pretrained(args.model, revision=args.revision).to(device).eval()
+    revision = args.revision
 
     catalog = sorted(read_json(args.data_dir / "catalog.json"), key=lambda p: p["item_id"])
     train = read_json(args.data_dir / "train_gold.json")

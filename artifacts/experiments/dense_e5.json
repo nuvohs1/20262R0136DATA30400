@@ -1,0 +1,273 @@
+{
+  "method": "zero-shot E5 dense retrieval and BM25 v2 + dense hybrid",
+  "evaluation": "local development validation; not a Kaggle score",
+  "embeddings_manifest": {
+    "model": "intfloat/e5-base-v2",
+    "model_revision": null,
+    "pooling": "mean over attention mask, L2-normalized",
+    "prefixes": {
+      "catalog": "passage: ",
+      "reviews": "query: "
+    },
+    "passage_max_length": 256,
+    "review_max_length": 256,
+    "dtype": "float16",
+    "hidden_size": 768,
+    "row_order": {
+      "catalog": "ascending item_id",
+      "train_reviews": "train_gold.json order x 5 reviews",
+      "test_reviews": "test_queries.json order x 5 reviews"
+    },
+    "catalog_item_ids_sha256": "85a8c5e390c567abd26a0c744d26c8a16536ec613fe0d7a2a9926aacc96196d2",
+    "source_sha256": {
+      "catalog.json": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+      "train_gold.json": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+      "test_queries.json": "3f175c4a9517df20b15547b04f5ac556ccee56c51862d0ebc0705477429d87a8"
+    },
+    "environment": {
+      "python": "3.13.16",
+      "torch": "2.14.1+cu130",
+      "transformers": "5.22.1",
+      "device": "Tesla T4"
+    },
+    "timing_seconds": {
+      "catalog": 257.52564829299996,
+      "train": 227.04266439499997,
+      "test": 227.473897716
+    },
+    "model_revision_inferred": {
+      "sha": "f52bf8ec8c7124536f0efb74aca902b2995e5bcd",
+      "note": "Not recorded by the 2026-11-18 Colab run (transformers 5 exposes no _commit_hash). Inferred: the Hub repository's last commit is 2025-02-17, before the run. encode_dense.py now pins this revision."
+    }
+  },
+  "selected_alpha": 3.0,
+  "alpha_grid": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    1.5,
+    2.0,
+    3.0,
+    4.0,
+    5.0,
+    7.0,
+    10.0
+  ],
+  "bm25_config": {
+    "stem": true,
+    "metadata": {
+      "k1": 2.5,
+      "b": 1.0,
+      "field_weights": [
+        5.0,
+        1.0,
+        1.0,
+        0.5
+      ]
+    },
+    "query": {
+      "mode": "log",
+      "max_document_frequency": 1.0,
+      "max_terms": 128,
+      "term_weight_power": 0.75,
+      "select_by": "weight"
+    },
+    "rsj_prior_strength": 10.0,
+    "review_expansion": {
+      "enabled": false,
+      "k1": 1.2,
+      "b": 0.75,
+      "query": {
+        "mode": "log",
+        "max_terms": 128,
+        "idf_power": 1.0
+      },
+      "weight": 0.3,
+      "threshold": 6.0
+    },
+    "seed": 42
+  },
+  "results": {
+    "tuning_slice": {
+      "dense_mean": {
+        "recall_at_1": 0.17325,
+        "recall_at_5": 0.34575,
+        "recall_at_10": 0.44225
+      },
+      "dense_max": {
+        "recall_at_1": 0.18075,
+        "recall_at_5": 0.3345,
+        "recall_at_10": 0.421
+      },
+      "hybrid_0.0": {
+        "recall_at_1": 0.257,
+        "recall_at_5": 0.45775,
+        "recall_at_10": 0.558
+      },
+      "hybrid_0.25": {
+        "recall_at_1": 0.264,
+        "recall_at_5": 0.469,
+        "recall_at_10": 0.57125
+      },
+      "hybrid_0.5": {
+        "recall_at_1": 0.2695,
+        "recall_at_5": 0.47525,
+        "recall_at_10": 0.579
+      },
+      "hybrid_0.75": {
+        "recall_at_1": 0.2755,
+        "recall_at_5": 0.482,
+        "recall_at_10": 0.587
+      },
+      "hybrid_1.0": {
+        "recall_at_1": 0.28325,
+        "recall_at_5": 0.48725,
+        "recall_at_10": 0.59225
+      },
+      "hybrid_1.5": {
+        "recall_at_1": 0.29125,
+        "recall_at_5": 0.4925,
+        "recall_at_10": 0.601
+      },
+      "hybrid_2.0": {
+        "recall_at_1": 0.29475,
+        "recall_at_5": 0.4975,
+        "recall_at_10": 0.605
+      },
+      "hybrid_3.0": {
+        "recall_at_1": 0.2955,
+        "recall_at_5": 0.50225,
+        "recall_at_10": 0.60675
+      },
+      "hybrid_4.0": {
+        "recall_at_1": 0.2905,
+        "recall_at_5": 0.49875,
+        "recall_at_10": 0.60225
+      },
+      "hybrid_5.0": {
+        "recall_at_1": 0.28975,
+        "recall_at_5": 0.494,
+        "recall_at_10": 0.59925
+      },
+      "hybrid_7.0": {
+        "recall_at_1": 0.281,
+        "recall_at_5": 0.4755,
+        "recall_at_10": 0.584
+      },
+      "hybrid_10.0": {
+        "recall_at_1": 0.268,
+        "recall_at_5": 0.4575,
+        "recall_at_10": 0.56825
+      }
+    },
+    "validation": {
+      "dense_mean": {
+        "recall_at_1": 0.18325,
+        "recall_at_5": 0.36775,
+        "recall_at_10": 0.46225
+      },
+      "dense_max": {
+        "recall_at_1": 0.1865,
+        "recall_at_5": 0.3495,
+        "recall_at_10": 0.43925
+      },
+      "hybrid_0.0": {
+        "recall_at_1": 0.2765,
+        "recall_at_5": 0.476,
+        "recall_at_10": 0.57825
+      },
+      "hybrid_0.25": {
+        "recall_at_1": 0.2805,
+        "recall_at_5": 0.4885,
+        "recall_at_10": 0.58825
+      },
+      "hybrid_0.5": {
+        "recall_at_1": 0.28425,
+        "recall_at_5": 0.499,
+        "recall_at_10": 0.59775
+      },
+      "hybrid_0.75": {
+        "recall_at_1": 0.28875,
+        "recall_at_5": 0.50675,
+        "recall_at_10": 0.60425
+      },
+      "hybrid_1.0": {
+        "recall_at_1": 0.29275,
+        "recall_at_5": 0.51425,
+        "recall_at_10": 0.61075
+      },
+      "hybrid_1.5": {
+        "recall_at_1": 0.30275,
+        "recall_at_5": 0.519,
+        "recall_at_10": 0.61525
+      },
+      "hybrid_2.0": {
+        "recall_at_1": 0.30425,
+        "recall_at_5": 0.52125,
+        "recall_at_10": 0.616
+      },
+      "hybrid_3.0": {
+        "recall_at_1": 0.30175,
+        "recall_at_5": 0.51725,
+        "recall_at_10": 0.6195
+      },
+      "hybrid_4.0": {
+        "recall_at_1": 0.29725,
+        "recall_at_5": 0.5165,
+        "recall_at_10": 0.613
+      },
+      "hybrid_5.0": {
+        "recall_at_1": 0.2935,
+        "recall_at_5": 0.509,
+        "recall_at_10": 0.608
+      },
+      "hybrid_7.0": {
+        "recall_at_1": 0.28525,
+        "recall_at_5": 0.498,
+        "recall_at_10": 0.59425
+      },
+      "hybrid_10.0": {
+        "recall_at_1": 0.27125,
+        "recall_at_5": 0.481,
+        "recall_at_10": 0.57925
+      }
+    }
+  },
+  "leakage_controls": {
+    "encoder": "pretrained, zero-shot; no labels used",
+    "alpha_selection": "4,000-query tuning slice of development-training; BM25 RSJ from the other 12,000",
+    "validation": "evaluated once; BM25 RSJ from 16,000 development-training queries",
+    "test": "BM25 RSJ and review index from all 20,000 training queries"
+  },
+  "environment": {
+    "python": "3.15.2",
+    "numpy": "2.5.5"
+  },
+  "split_sha256": "d27e8670212d193f55eee5b88510d3ebe109d82d0dd16923fff9ab3fa6eb6d00",
+  "kaggle_recall_at_10": {},
+  "test_csv": {
+    "dense_only": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "f41ebd54671ae6a53e7843a240a08b049be8a202eef1ecdee1edc022ff59c043"
+    },
+    "hybrid_bm25_expansion_dense": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "fe532320a8002592a00994690d2f60ee25b461acf49a8f67a5523091dd34ebbc"
+    }
+  },
+  "timing_seconds": {
+    "tuning": 117.96366599999601,
+    "validation": 142.55148100000224,
+    "test": 481.5493390000047,
+    "total": 769.5396686000022
+  },
+  "notes": [
+    "The alpha grid was first {0..3}; 3.0 was its upper edge, so the grid was extended to 10 on the tuning slice and the run repeated. The selection (3.0) and all output files were identical; validation was not used for selection."
+  ]
+}
