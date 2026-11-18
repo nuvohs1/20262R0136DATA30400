@@ -1,6 +1,9 @@
-"""Evaluate zero-shot dense retrieval and a BM25 + dense hybrid locally (NumPy only).
+"""Evaluate dense retrieval and a BM25 + dense hybrid locally (NumPy only).
 
-Requires embeddings from scripts/encode_dense.py (see notebooks/dense_encode_colab.ipynb).
+Requires embeddings from scripts/encode_dense.py (see notebooks/gpu_colab.ipynb): either
+the pretrained bert-base-uncased (zero-shot) or the learning-to-rank fine-tuned checkpoints.
+Embedding manifests are checked against review_retrieval.model_policy, so embeddings of a
+non-allowed model are refused.
 
 Query representation: each of the five reviews is embedded separately ("query: "
 prefix); product scores are the mean (or max) of the five review-product cosine
@@ -10,7 +13,9 @@ so all five reviews contribute equally regardless of their length.
 Hybrid: z-score of BM25 v2 + alpha * z-score of the dense mean score.
 
 Leakage controls (same protocol as BM25 v2):
-  * The encoder is used zero-shot; no labels touch it.
+  * Zero-shot encoder: no labels touch it. Fine-tuned encoder: validation embeddings must
+    come from model A (trained on the 12,000 development-training queries outside the
+    tuning slice); test embeddings may come from model B (all 20,000 training queries).
   * alpha is chosen on the 4,000-query tuning slice of development-training (seed 42),
     with BM25 RSJ weights learned from the other 12,000 development-training queries.
   * Validation (4,000 queries) is evaluated once with all choices fixed; its RSJ
@@ -37,6 +42,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from review_retrieval.bm25_v2 import Retriever, zscore
 from review_retrieval.common import read_json, sha256, write_json, write_submission
+from review_retrieval.model_policy import check_embedding_manifest
 from review_retrieval.sparse_bm25 import product_field_tokens, review_token_lists, top_k
 from run_bm25_v2 import CONFIG as BM25_CONFIG, with_expansion, without_expansion
 
@@ -89,11 +95,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--data-dir", type=Path, default=ROOT / "project_release")
     parser.add_argument("--split", type=Path, default=ROOT / "artifacts/dev_split.json")
-    parser.add_argument("--embeddings", type=Path, default=ROOT / "outputs/dense/e5-base-v2")
+    parser.add_argument("--embeddings", type=Path, default=ROOT / "outputs/dense/bert-base-uncased")
     parser.add_argument("--test-embeddings", type=Path,
                         help="Use a different embedding directory (e.g. the model trained on all training "
                              "queries) for test predictions; validation always uses --embeddings")
-    parser.add_argument("--output-dir", type=Path, default=ROOT / "outputs/dense_eval/e5-base-v2")
+    parser.add_argument("--output-dir", type=Path, default=ROOT / "outputs/dense_eval/bert-base-uncased")
     parser.add_argument("--workers", type=int, default=min(8, os.cpu_count() or 1))
     parser.add_argument("--alpha", type=float, help="Skip tuning and use this hybrid weight")
     parser.add_argument("--predict-test", action="store_true")
@@ -114,6 +120,10 @@ def main():
     for name in ("catalog.json", "train_gold.json"):
         if manifest["source_sha256"][name] != sha256(args.data_dir / name):
             raise ValueError(f"Embeddings were computed from a different {name}")
+    eligibility = check_embedding_manifest(manifest)
+    if eligibility["kind"] == "fine-tuned checkpoint" and eligibility["provenance"].get("negatives_set") != "dev":
+        raise ValueError("Validation embeddings must come from the development model (negatives_dev.json); "
+                         "a model trained on all training queries has seen the validation queries")
     catalog_emb = np.load(args.embeddings / "catalog.npy")
     train_emb = np.load(args.embeddings / "train_reviews.npy").reshape(len(train), 5, -1)
     if catalog_emb.shape[0] != len(catalog):
@@ -172,12 +182,13 @@ def main():
                          [[item_ids[i] for i in r[m]] for r in validated], item_ids)
 
     metrics = {
-        "method": "zero-shot E5 dense retrieval and BM25 v2 + dense hybrid",
+        "method": f"dense retrieval ({eligibility['kind']} of {eligibility['base_model']}) and BM25 v2 + dense hybrid",
         "evaluation": "local development validation; not a Kaggle score",
         "embeddings_manifest": manifest, "selected_alpha": best, "alpha_grid": list(ALPHAS),
         "bm25_config": BM25_CONFIG, "results": results,
         "leakage_controls": {
-            "encoder": "pretrained, zero-shot; no labels used",
+            "encoder": ("pretrained, zero-shot; no labels used" if eligibility["kind"] == "pretrained checkpoint"
+                        else "fine-tuned on the 12,000 development-training queries outside the tuning slice"),
             "alpha_selection": "4,000-query tuning slice of development-training; BM25 RSJ from the other 12,000",
             "validation": "evaluated once; BM25 RSJ from 16,000 development-training queries",
             "test": "BM25 RSJ and review index from all 20,000 training queries",
@@ -194,6 +205,7 @@ def main():
         for name in ("catalog.json", "test_queries.json"):
             if test_manifest["source_sha256"][name] != sha256(args.data_dir / name):
                 raise ValueError(f"Test embeddings were computed from a different {name}")
+        check_embedding_manifest(test_manifest)
         test_emb = np.load(test_dir / "test_reviews.npy").reshape(len(test), 5, -1)
         test_catalog = np.load(test_dir / "catalog.npy") if args.test_embeddings else catalog_emb
         metrics["test_embeddings_manifest"] = test_manifest

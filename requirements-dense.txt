@@ -1,4 +1,5 @@
-# GPU encoding only (Colab): scripts/encode_dense.py. Local evaluation needs NumPy only.
+# GPU stage only (Colab): scripts/encode_dense.py, scripts/train_dense_ltr.py (run_gpu.sh).
+# Local evaluation needs NumPy only.
 torch>=2.1
 transformers>=4.40
 numpy

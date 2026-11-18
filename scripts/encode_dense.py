@@ -1,18 +1,17 @@
-"""Encode catalog products and every review with a pretrained E5 encoder (run on a GPU, e.g. Colab).
+"""Encode catalog products and every review with an eligible BERT encoder (run on a GPU, e.g. Colab).
 
-No training happens here: the encoder is used as-is (zero-shot), so no labels are
-read. Outputs are L2-normalized float16 embeddings, one row per product or review:
+No training happens here: the encoder is used as-is, so no labels are read. Outputs are
+L2-normalized float16 embeddings, one row per product or review:
 
   outputs/dense/<tag>/catalog.npy        50,000 x d, rows in ascending item_id order
   outputs/dense/<tag>/train_reviews.npy  20,000*5 x d, train_gold.json order, 5 rows per query
   outputs/dense/<tag>/test_reviews.npy   19,858*5 x d, test_queries.json order, 5 rows per query
-  outputs/dense/<tag>/manifest.json      model revision, settings, input fingerprints, row order
+  outputs/dense/<tag>/manifest.json      model, revision, eligibility record, settings, input fingerprints
 
-Model eligibility (intfloat/e5-base-v2, MIT): contrastive pre-training on CCPairs
-(Wikipedia, Reddit, Common Crawl, StackExchange, S2ORC, News, SimpleWiki, GooAQ,
-WikiHow, Yahoo Answers) and fine-tuning on MS-MARCO, NQ, and NLI (Wang et al., 2022,
-arXiv:2212.03533, Sec. 4-5 and Table 9). No Amazon data is used for training; Amazon
-datasets appear only in the MTEB evaluation tables.
+Model eligibility is enforced by review_retrieval.model_policy: only the pinned
+google-bert/bert-base-uncased (BookCorpus + English Wikipedia, MLM/NSP; see
+docs/model_eligibility.md) or a checkpoint fine-tuned from it on the course training
+file by scripts/train_dense_ltr.py can be loaded. Anything else raises an error.
 """
 
 import argparse
@@ -31,6 +30,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from review_retrieval.common import read_json, sha256
 from review_retrieval.dense_text import product_passage, review_texts
+from review_retrieval.model_policy import ALLOWED_CHECKPOINTS, DEFAULT_CHECKPOINT, check_model
 
 
 def set_seeds(seed=42):
@@ -67,10 +67,13 @@ def encode(model, tokenizer, texts, prefix, max_length, batch_size, device, labe
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--data-dir", type=Path, default=ROOT / "project_release")
-    parser.add_argument("--model", default="intfloat/e5-base-v2")
-    parser.add_argument("--revision", default="f52bf8ec8c7124536f0efb74aca902b2995e5bcd",
-                        help="Hugging Face commit of the model (pinned for reproducibility)")
-    parser.add_argument("--tag", default="e5-base-v2")
+    parser.add_argument("--model", default=DEFAULT_CHECKPOINT,
+                        help="Allowed Hugging Face checkpoint or a local fine-tuned checkpoint directory")
+    parser.add_argument("--revision", default=ALLOWED_CHECKPOINTS[DEFAULT_CHECKPOINT]["revision"],
+                        help="Hugging Face commit of the model (must equal the verified revision)")
+    parser.add_argument("--tag", default="bert-base-uncased")
+    parser.add_argument("--query-prefix", default="", help="Text prepended to every review")
+    parser.add_argument("--passage-prefix", default="", help="Text prepended to every product passage")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "outputs/dense")
     parser.add_argument("--passage-max-length", type=int, default=256)
     parser.add_argument("--review-max-length", type=int, default=256)
@@ -84,8 +87,10 @@ def main():
     out_dir = args.output_dir / args.tag
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # A local fine-tuned checkpoint directory has no Hub revision.
-    revision = None if Path(args.model).is_dir() else (args.revision or None)
+    # A local fine-tuned checkpoint directory has no Hub revision; its provenance.json is checked instead.
+    revision = None if Path(args.model).is_dir() else args.revision
+    eligibility = check_model(args.model, revision, sha256(args.data_dir / "train_gold.json"))
+    print(f"Eligible model: {eligibility['kind']} based on {eligibility['base_model']}@{eligibility['base_revision']}", flush=True)
     tokenizer = AutoTokenizer.from_pretrained(args.model, revision=revision)
     model = AutoModel.from_pretrained(args.model, revision=revision).to(device).eval()
 
@@ -99,7 +104,7 @@ def main():
     common = dict(model=model, tokenizer=tokenizer, batch_size=args.batch_size, device=device)
     if "catalog" in parts:
         t = time.perf_counter()
-        emb = encode(texts=[product_passage(p) for p in catalog], prefix="passage: ",
+        emb = encode(texts=[product_passage(p) for p in catalog], prefix=args.passage_prefix,
                      max_length=args.passage_max_length, label="catalog", **common)
         np.save(out_dir / "catalog.npy", emb)
         timing["catalog"] = time.perf_counter() - t
@@ -107,15 +112,16 @@ def main():
         if name in parts:
             t = time.perf_counter()
             texts = [text for q in queries for text in review_texts(q)]
-            emb = encode(texts=texts, prefix="query: ", max_length=args.review_max_length, label=name, **common)
+            emb = encode(texts=texts, prefix=args.query_prefix, max_length=args.review_max_length, label=name, **common)
             np.save(out_dir / f"{name}_reviews.npy", emb)
             timing[name] = time.perf_counter() - t
 
     manifest_path = out_dir / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
     manifest.update({
-        "model": args.model, "model_revision": revision or "local checkpoint", "pooling": "mean over attention mask, L2-normalized",
-        "prefixes": {"catalog": "passage: ", "reviews": "query: "},
+        "model": args.model, "model_revision": revision or "local checkpoint",
+        "eligibility": eligibility, "pooling": "mean over attention mask, L2-normalized",
+        "prefixes": {"catalog": args.passage_prefix, "reviews": args.query_prefix},
         "passage_max_length": args.passage_max_length, "review_max_length": args.review_max_length,
         "dtype": "float16", "hidden_size": model.config.hidden_size,
         "row_order": {"catalog": "ascending item_id", "train_reviews": "train_gold.json order x 5 reviews",

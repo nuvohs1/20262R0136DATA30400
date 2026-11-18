@@ -1,50 +1,27 @@
-# Dense retrieval (zero-shot E5)
+# Dense retrieval (BERT bi-encoder)
 
-## Model eligibility
+## Model
 
-`intfloat/e5-base-v2` (MIT license, 110M parameters, mean pooling, `query: ` / `passage: ` prefixes). According to Wang et al., *Text Embeddings by Weakly-Supervised Contrastive Pre-training* (arXiv:2212.03533), which the model card cites for training details:
-
-- Contrastive pre-training on CCPairs (Table 9): Wikipedia, Reddit, Common Crawl, StackExchange, S2ORC, News, and "Others" (SimpleWiki, GooAQ, WikiHow, Yahoo Answers).
-- Supervised fine-tuning (Sec. 4.2 and 5.1): MS-MARCO passage ranking, Natural Questions, and NLI.
-- Amazon datasets (AmazonPolarity, AmazonReviews, AmazonCounterfactual) appear only as MTEB evaluation tasks, not as training data.
-
-We therefore treat the model as not fine-tuned on Amazon product data. `scripts/encode_dense.py` pins Hugging Face revision `f52bf8ec8c7124536f0efb74aca902b2995e5bcd`. The recorded Colab run (2026-11-18) did not log the revision, because transformers 5 does not expose it. The repository's last commit is dated 2025-02-17, before that run, so the run used this revision. Commonly used `sentence-transformers/all-*` models were not chosen because their 1B-pair training mixture is broad and harder to verify.
+`google-bert/bert-base-uncased` at revision `86b5e093…`, the only allowed checkpoint ([model eligibility](model_eligibility.md)). It is used zero-shot here; the fine-tuned version is described in [learning-to-rank fine-tuning](ltr_finetuning.md).
 
 ## Method
 
-- Products: `passage: Title: … | Store: … | Features: … | Description: …`, truncated to 256 tokens (description is truncated first).
-- Reviews: each of the five reviews is encoded separately as `query: <review>` (256 tokens). Product score = mean of the five cosine similarities (`dense_mean`), or the maximum (`dense_max`).
-- Hybrid: `z(BM25 v2) + alpha * z(dense_mean)`; alpha chosen from {0, 0.25, …, 3} on the 4,000-query tuning slice. The test hybrid adds the dense term on top of the Kaggle-best BM25 (with review expansion); alpha = 0 reproduces that BM25 file byte for byte.
-- No labels are used by the encoder. The leakage protocol is the same as BM25 v2 (see `docs/bm25_v2.md`).
+- Product passage: `Title: … | Store: … | Features: … | Description: …` after the shared text cleaning (`src/review_retrieval/dense_text.py`), truncated to 256 tokens.
+- Reviews: each of the five reviews is encoded separately (up to 256 tokens). No instruction prefixes are used.
+- Pooling: mean over the attention mask, then L2 normalization; stored as float16.
+- Score: the mean of the five review–product cosine similarities, which equals the dot product with the mean review embedding. The maximum over reviews is reported as an ablation.
+- Hybrid: `z(BM25 v2) + α · z(dense)`, with α chosen from a fixed grid on the 4,000-query tuning slice. BM25 RSJ weights for tuning come from the other 12,000 development-training queries. Validation is evaluated once with RSJ from the 16,000 development-training queries. For test, the BM25 part is the Kaggle-best variant with labelled-review expansion, learned from all 20,000 training queries.
 
 ## How to run
 
-1. Colab (GPU): open `notebooks/dense_encode_colab.ipynb`, following its instructions. This produces `outputs/dense/e5-base-v2/{catalog,train_reviews,test_reviews}.npy` and `manifest.json` (about 400 MB).
-2. Download that folder into the local `outputs/dense/e5-base-v2/`.
-3. Locally (NumPy only):
+1. GPU (Colab T4): `notebooks/gpu_colab.ipynb`, step 1 (`bash run_gpu.sh zeroshot`) writes `outputs/dense/bert-base-uncased/`.
+2. Locally (NumPy only):
 
 ```bash
-python scripts/run_dense.py --predict-test --student-id 2024320020 --workers 8
+python scripts/run_dense.py --embeddings outputs/dense/bert-base-uncased \
+    --output-dir outputs/dense_eval/bert-base-uncased --predict-test --student-id 2024320020 --workers 8
 ```
-
-This writes `outputs/dense_eval/e5-base-v2/dense_only/2024320020_final.csv`, `outputs/dense_eval/e5-base-v2/hybrid_bm25_expansion_dense/2024320020_final.csv`, and `metrics.json`.
 
 ## Results
 
-Local results are on the 4,000 held-out validation queries, searching all 50,000 products. Kaggle scores are student-reported. The hybrid submission (0.64699) is the current best and improves on BM25 v2 with review expansion (0.60761) by 3.9 points.
-
-| Method | Recall@1 | Recall@5 | Recall@10 | Kaggle |
-| --- | ---: | ---: | ---: | ---: |
-| E5 zero-shot, mean of five review similarities | 18.33% | 36.78% | 46.23% | 0.47738 |
-| E5 zero-shot, max of five review similarities | 18.65% | 34.95% | 43.93% | not submitted |
-| BM25 v2, metadata only (alpha = 0) | 27.65% | 47.60% | 57.83% | 0.57538 |
-| **BM25 v2 + E5 hybrid (alpha = 3)** | **30.18%** | **51.73%** | **61.95%** | **0.64699** (test file includes BM25 review expansion) |
-
-Tuning-slice Recall@10 by alpha: 0 → 55.80%, 0.5 → 57.90%, 1 → 59.23%, 2 → 60.50%, **3 → 60.68%**, 4 → 60.22%, 5 → 59.92%, 7 → 58.40%, 10 → 56.83%. The first grid stopped at 3, its upper edge, so the grid was extended on the tuning slice and the run repeated. The selection and every output file were byte-identical, and validation was never used for selection.
-
-Observations:
-- Zero-shot dense retrieval alone is weaker than the tuned BM25 (46.2% vs 57.8%), but the two make different errors: fusing them adds 4.1 points of validation Recall@10.
-- Averaging the five review similarities beats taking the maximum by 2.3 points of Recall@10: evidence from several reviews is more reliable than the single best-matching review.
-- Two complete runs produced byte-identical submissions.
-
-Embedding cost on a Colab T4: about 258 s for the catalog and about 227 s each for train and test reviews. Local fusion and evaluation take about 10 minutes with 12 CPU workers.
+Pending the Colab run.

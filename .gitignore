@@ -7,6 +7,7 @@ tmp/
 project_release/*.json
 project_release/*.txt
 final_project.pdf
+Tutorial class*.pdf
 outputs/
 checkpoints/
 *.pt

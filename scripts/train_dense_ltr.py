@@ -1,4 +1,9 @@
-"""Fine-tune E5 with a listwise learning-to-rank loss on review-product pairs (GPU, e.g. Colab).
+"""Fine-tune BERT as a bi-encoder with a listwise learning-to-rank loss on review-product pairs (GPU, e.g. Colab).
+
+Base model: google-bert/bert-base-uncased at the verified revision (BookCorpus + English
+Wikipedia, MLM/NSP only; docs/model_eligibility.md). review_retrieval.model_policy refuses
+any other base. The saved checkpoint carries provenance.json (base model, revision, and
+the SHA-256 of the course training file it was fine-tuned on).
 
 Objective (listwise softmax cross-entropy, i.e. ListNet top-1 / InfoNCE):
   for a batch of B queries, each query's candidate list is the B correct products in
@@ -7,7 +12,7 @@ Objective (listwise softmax cross-entropy, i.e. ListNet top-1 / InfoNCE):
   loss = -log softmax_j(q . p_j / tau)[correct]. Duplicate copies of a query's correct
   product elsewhere in the batch are masked out.
 
-Hard negatives come from scripts/mine_negatives.py (IDs only), drawn without
+Hard negatives come from scripts/mine_negatives.py (BM25 only, item IDs only), drawn without
 replacement from the top `--negative-pool` first-stage results with a seeded RNG.
 
 Protocol:
@@ -40,6 +45,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from encode_dense import encode, set_seeds
 from review_retrieval.common import read_json, sha256
 from review_retrieval.dense_text import product_passage, review_texts
+from review_retrieval.model_policy import ALLOWED_CHECKPOINTS, DEFAULT_CHECKPOINT, PROVENANCE_FILE, check_model
 
 
 def embed(model, tokenizer, texts, max_length, device):
@@ -54,9 +60,9 @@ def recall_on_slice(model, tokenizer, passages, item_ids, queries, device, args)
     """Dense-only Recall@1/10 over the full catalog for the given labelled queries."""
     model.eval()
     common = dict(model=model, tokenizer=tokenizer, batch_size=256, device=device)
-    catalog = encode(texts=passages, prefix="passage: ", max_length=args.passage_max_length, label="eval catalog", **common)
+    catalog = encode(texts=passages, prefix=args.passage_prefix, max_length=args.passage_max_length, label="eval catalog", **common)
     texts = [t for q in queries for t in review_texts(q)]
-    reviews = encode(texts=texts, prefix="query: ", max_length=256, label="eval reviews", **common)
+    reviews = encode(texts=texts, prefix=args.query_prefix, max_length=256, label="eval reviews", **common)
     model.train()
     catalog_t = torch.from_numpy(catalog).to(device).float()
     query_t = torch.from_numpy(reviews.reshape(len(queries), 5, -1)).to(device).float().mean(1)
@@ -74,19 +80,21 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--data-dir", type=Path, default=ROOT / "project_release")
     parser.add_argument("--negatives", type=Path, required=True)
-    parser.add_argument("--model", default="intfloat/e5-base-v2")
-    parser.add_argument("--revision", default="f52bf8ec8c7124536f0efb74aca902b2995e5bcd")
+    parser.add_argument("--model", default=DEFAULT_CHECKPOINT)
+    parser.add_argument("--revision", default=ALLOWED_CHECKPOINTS[DEFAULT_CHECKPOINT]["revision"])
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--epochs", type=int, default=3, help="Length of the learning-rate schedule")
+    parser.add_argument("--epochs", type=int, default=4, help="Length of the learning-rate schedule")
     parser.add_argument("--stop-after-epoch", type=int, help="Stop and save after this epoch (full-data run)")
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--hard-negatives", type=int, default=3)
     parser.add_argument("--negative-pool", type=int, default=30)
     parser.add_argument("--lr", type=float, default=2e-5)
-    parser.add_argument("--temperature", type=float, default=0.02)
+    parser.add_argument("--temperature", type=float, default=0.05)
     parser.add_argument("--warmup-ratio", type=float, default=0.1)
     parser.add_argument("--review-max-length", type=int, default=192)
     parser.add_argument("--passage-max-length", type=int, default=256)
+    parser.add_argument("--query-prefix", default="", help="Must match encode_dense.py (default: none)")
+    parser.add_argument("--passage-prefix", default="", help="Must match encode_dense.py (default: none)")
     args = parser.parse_args()
     set_seeds(42)
     torch.use_deterministic_algorithms(True, warn_only=True)
@@ -106,7 +114,26 @@ def main():
     overlap = set(train_ids) & (set(record["tune_query_ids"]) | set(record["validation_query_ids_excluded"]))
     if overlap:
         raise ValueError("Training queries overlap the tuning or validation queries")
+    if record["first_stage"].get("dense"):
+        raise ValueError("Negatives must come from the BM25-only first stage (re-run scripts/mine_negatives.py)")
     negatives = record["negatives"]
+
+    eligibility = check_model(args.model, args.revision)
+    train_sha = sha256(args.data_dir / "train_gold.json")
+    provenance = {
+        "base_model": eligibility["base_model"], "base_revision": eligibility["base_revision"],
+        "fine_tuning_data": "course train_gold.json only", "train_gold_sha256": train_sha,
+        "catalog_sha256": sha256(args.data_dir / "catalog.json"), "negatives_sha256": sha256(args.negatives),
+        "negatives_set": record["set"], "train_queries": len(train_ids),
+        "objective": "listwise softmax cross-entropy (in-batch + BM25 hard negatives)",
+        "query_prefix": args.query_prefix, "passage_prefix": args.passage_prefix,
+    }
+
+    def save(epoch):
+        target = args.output_dir / "checkpoint"
+        model.save_pretrained(target)
+        tokenizer.save_pretrained(target)
+        (target / PROVENANCE_FILE).write_text(json.dumps({**provenance, "epoch": epoch}, indent=2) + "\n", encoding="utf-8")
 
     tokenizer = AutoTokenizer.from_pretrained(args.model, revision=args.revision)
     model = AutoModel.from_pretrained(args.model, revision=args.revision).to(device)
@@ -118,7 +145,7 @@ def main():
     scheduler = get_linear_schedule_with_warmup(optimizer, int(total * args.warmup_ratio), total)
     scaler = torch.amp.GradScaler("cuda")
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    log = {"args": {k: str(v) for k, v in vars(args).items()}, "train_queries": len(train_ids),
+    log = {"args": {k: str(v) for k, v in vars(args).items()}, "provenance": provenance, "train_queries": len(train_ids),
            "steps_per_epoch": steps_per_epoch, "epochs": [],
            "environment": {"python": platform.python_version(), "torch": torch.__version__,
                            "transformers": __import__("transformers").__version__,
@@ -135,11 +162,11 @@ def main():
             positives = [train[q]["item_id"] for q in batch]
             hard = [item for q in batch for item in rng.sample(negatives[q][:args.negative_pool], args.hard_negatives)]
             candidates = positives + hard
-            reviews = ["query: " + t for q in batch for t in review_texts(train[q])]
+            reviews = [args.query_prefix + t for q in batch for t in review_texts(train[q])]
             with torch.autocast(device_type="cuda", dtype=torch.float16):
                 review_vectors = embed(model, tokenizer, reviews, args.review_max_length, device)
                 query = torch.nn.functional.normalize(review_vectors.view(len(batch), 5, -1).mean(1), dim=-1)
-                products = embed(model, tokenizer, ["passage: " + passage[i] for i in candidates],
+                products = embed(model, tokenizer, [args.passage_prefix + passage[i] for i in candidates],
                                  args.passage_max_length, device)
             logits = (query @ products.T) / args.temperature
             duplicate = torch.tensor([[c == positives[i] and j != i for j, c in enumerate(candidates)]
@@ -165,14 +192,13 @@ def main():
             if entry["tuning_slice_dense"]["recall_at_10"] > best:
                 best = entry["tuning_slice_dense"]["recall_at_10"]
                 log["selected_epoch"] = epoch
-                model.save_pretrained(args.output_dir / "checkpoint")
-                tokenizer.save_pretrained(args.output_dir / "checkpoint")
+                save(epoch)
         log["epochs"].append(entry)
         (args.output_dir / "train_log.json").write_text(json.dumps(log, indent=2) + "\n", encoding="utf-8")
     if not tune:
         log["selected_epoch"] = last_epoch
-        model.save_pretrained(args.output_dir / "checkpoint")
-        tokenizer.save_pretrained(args.output_dir / "checkpoint")
+        save(last_epoch)
+    log["completed"] = True
     (args.output_dir / "train_log.json").write_text(json.dumps(log, indent=2) + "\n", encoding="utf-8")
     print(f"Saved checkpoint (epoch {log['selected_epoch']}) to {args.output_dir / 'checkpoint'}", flush=True)
 

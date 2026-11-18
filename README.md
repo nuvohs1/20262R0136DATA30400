@@ -4,7 +4,7 @@ Match five reviews of one product to 10 distinct candidates from the full 50,000
 
 ## Current status
 
-The improved BM25 (BM25F, plural folding, and supervised Robertson–Spärck Jones query weights) reaches **57.83% local Recall@10** on the 4,000 held-out validation queries against all 50,000 products, and **0.57538** on Kaggle. Adding a thresholded bonus from labelled training reviews (review expansion) gives the best Kaggle score so far, **0.60761**. The original BM25 reached 36.25% locally (Kaggle 0.38120). Zero-shot E5 dense retrieval reaches 46.23% locally on its own, and a BM25 v2 + E5 hybrid reaches **61.95%**. Kaggle: dense alone 0.47738; hybrid on top of BM25 review expansion **0.64699**, the current best ([docs/dense_retrieval.md](docs/dense_retrieval.md)). All hyperparameters were chosen on a tuning slice of the development-training partition; validation was evaluated once. See [the BM25 v2 record](docs/bm25_v2.md). The earlier SQLite comparisons are in [the BM25 comparison](docs/bm25_tuning.md) and [the original baseline](docs/bm25_baseline.md). Dense retrieval and learning-to-rank are future steps.
+The improved BM25 (BM25F, plural folding, and supervised Robertson–Spärck Jones query weights) reaches **57.83% local Recall@10** on the 4,000 held-out validation queries against all 50,000 products, and **0.57538** on Kaggle. Adding a thresholded bonus from labelled training reviews (review expansion) gives the best Kaggle score so far, **0.60761**. The original BM25 reached 36.25% locally (Kaggle 0.38120). All hyperparameters were chosen on a tuning slice of the development-training partition; validation was evaluated once. See [the BM25 v2 record](docs/bm25_v2.md). The earlier SQLite comparisons are in [the BM25 comparison](docs/bm25_tuning.md) and [the original baseline](docs/bm25_baseline.md). Dense retrieval and learning-to-rank fine-tuning use only `google-bert/bert-base-uncased`, whose training data (BookCorpus and English Wikipedia, MLM/NSP) is publicly documented; the code refuses any other checkpoint ([model eligibility](docs/model_eligibility.md)). Their results are pending.
 
 ## Data setup
 
@@ -87,13 +87,22 @@ python scripts/validate_submission.py outputs/bm25_v2_expansion/2024320020_final
 
 `bash run_bm25_v2.sh 2024320020 8` runs the data audit, tests, both v2 variants, and submission checks. The final file is `outputs/bm25_v2_expansion/2024320020_final.csv`. The script reports held-out validation for the metadata model with and without review expansion, plus an expansion proxy. It then writes `outputs/bm25_v2/2024320020_final.csv` (or `outputs/bm25_v2_expansion/` with the flag). Label-derived statistics come only from the development-training partition for validation, and from all of `train_gold.json` for test. Details are in [docs/bm25_v2.md](docs/bm25_v2.md).
 
-## Dense retrieval (E5, zero-shot)
+## Dense retrieval and learning-to-rank fine-tuning (BERT)
 
-Embeddings are computed on a GPU with `notebooks/dense_encode_colab.ipynb` (`scripts/encode_dense.py`, `requirements-dense.txt`). Evaluation, BM25 + dense fusion, and submissions run locally with NumPy: `python scripts/run_dense.py --predict-test --student-id 2024320020 --workers 8`. See [docs/dense_retrieval.md](docs/dense_retrieval.md) for model-eligibility evidence and the protocol.
+Only `google-bert/bert-base-uncased` at a pinned revision may be loaded. `src/review_retrieval/model_policy.py` enforces this in every script; evidence is in [docs/model_eligibility.md](docs/model_eligibility.md).
 
-## Learning-to-rank fine-tuning (E5)
+1. Locally: `python scripts/mine_negatives.py --workers 8` mines BM25 hard negatives (item IDs only) into `outputs/ltr/`.
+2. On a GPU (Colab T4): `notebooks/gpu_colab.ipynb` runs `bash run_gpu.sh` (`requirements-dense.txt`). It computes zero-shot BERT embeddings, fine-tunes BERT with a listwise softmax ranking loss (model A on 12,000 development-training queries, model B on all 20,000), and encodes with both models. Finished steps are skipped on re-runs.
+3. Locally, NumPy only:
 
-`scripts/mine_negatives.py` (local) mines first-stage hard negatives (item IDs only). `notebooks/ltr_finetune_colab.ipynb` (`scripts/train_dense_ltr.py`) fine-tunes e5-base-v2 on a GPU with a listwise softmax ranking loss. `scripts/run_dense.py --embeddings outputs/dense/e5-ltr-dev --test-embeddings outputs/dense/e5-ltr-full ...` evaluates the result and writes submissions locally. Protocol and results: [docs/ltr_finetuning.md](docs/ltr_finetuning.md).
+```bash
+# Zero-shot dense retrieval and BM25 + dense hybrid
+python scripts/run_dense.py --embeddings outputs/dense/bert-base-uncased --output-dir outputs/dense_eval/bert-base-uncased --predict-test --student-id 2024320020 --workers 8
+# Fine-tuned (learning to rank)
+python scripts/run_dense.py --embeddings outputs/dense/bert-ltr-dev --test-embeddings outputs/dense/bert-ltr-full --output-dir outputs/dense_eval/bert-ltr --predict-test --student-id 2024320020 --workers 8
+```
+
+Protocols and results: [docs/dense_retrieval.md](docs/dense_retrieval.md), [docs/ltr_finetuning.md](docs/ltr_finetuning.md).
 
 ## Compare BM25 weighting and review fusion
 

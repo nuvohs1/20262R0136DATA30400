@@ -33,7 +33,7 @@ The report must explain the final matching method and design rationale; include 
 ## Data and model restrictions
 
 - Use only the supplied dataset. Do not collect outside product information or hidden labels.
-- Public pretrained models are permitted only after checking that they were not fine-tuned on Amazon product data. Record evidence of model eligibility before choosing one.
+- Public pretrained checkpoints are permitted only if their training data is publicly documented and shows no Amazon data used for downstream tasks (QA, retrieval). Unverifiable checkpoints must not be used (TA ruling). The only allowed checkpoint is `google-bert/bert-base-uncased` at a pinned revision; see [model eligibility](model_eligibility.md). The code enforces this allow-list.
 - The stated external LLM API policy permits only GPT-4o mini, at most 1,000 calls total, with all prompts and outputs submitted separately. No external LLM API calls are planned for the pipeline.
 - Never transmit review text, summaries, or rewrites to external LLM services. Run review processing locally and inspect aggregate results.
 - LLM assistance with report wording is allowed; the student must review and take responsibility for all submitted content.
@@ -55,10 +55,10 @@ The report must explain the final matching method and design rationale; include 
 3. BM25 baseline and full-catalog validation (complete: local Recall@10 36.25%; user-reported Kaggle score 0.38120).
 4. BM25 field weighting, review aggregation, and query comparisons (complete: seven configurations; original baseline retained).
    - BM25 v2 (complete: BM25F k1 2.5 / b 1.0, plural folding, supervised RSJ query weights; held-out local Recall@10 57.83%; Kaggle 0.57538. With labelled-review expansion: Kaggle 0.60761, current best).
-5. Eligible dense model selection and embedding pipeline (complete: intfloat/e5-base-v2, zero-shot, revision pinned).
-6. Dense baseline validation and Kaggle prediction (complete locally: dense 46.23%, BM25+dense hybrid 61.95%; Kaggle dense 0.47738, hybrid 0.64699 = current best).
-7. Learning-to-rank training and hard-negative generation (in progress: negatives mined; Colab fine-tuning pending).
-8. Ranking validation and ablation comparisons.
+5. Eligible dense model selection and embedding pipeline (bert-base-uncased, revision pinned, allow-list enforced in code).
+6. Dense baseline validation and Kaggle prediction (pending the Colab run).
+7. Learning-to-rank training with BM25 hard negatives (pending the Colab run).
+8. Further class techniques, each with course data and the allowed checkpoint only: ANN index (IVF) for dense search; multi-stage ranking with a BERT cross-encoder reranker; pseudo-labeling / self-training on unlabeled test reviews; category labels as auxiliary information (multi-task learning); Precision@N, Recall@N, NDCG@N evaluation.
 9. Final selection, reproducibility runner, and submission checks.
 10. Case studies, report, and final reproduction documentation.
 
