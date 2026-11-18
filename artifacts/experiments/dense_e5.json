@@ -246,7 +246,11 @@
     "numpy": "2.5.5"
   },
   "split_sha256": "d27e8670212d193f55eee5b88510d3ebe109d82d0dd16923fff9ab3fa6eb6d00",
-  "kaggle_recall_at_10": {},
+  "kaggle_recall_at_10": {
+    "dense_only": 0.47738,
+    "hybrid_bm25_expansion_dense": 0.64699,
+    "note": "student-reported; leaderboard partition unspecified"
+  },
   "test_csv": {
     "dense_only": {
       "rows": 19858,

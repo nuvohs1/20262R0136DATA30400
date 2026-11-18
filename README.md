@@ -4,7 +4,7 @@ Match five reviews of one product to 10 distinct candidates from the full 50,000
 
 ## Current status
 
-The improved BM25 (BM25F, plural folding, and supervised Robertson–Spärck Jones query weights) reaches **57.83% local Recall@10** on the 4,000 held-out validation queries against all 50,000 products, and **0.57538** on Kaggle. Adding a thresholded bonus from labelled training reviews (review expansion) gives the best Kaggle score so far, **0.60761**. The original BM25 reached 36.25% locally (Kaggle 0.38120). Zero-shot E5 dense retrieval reaches 46.23% locally on its own, and a BM25 v2 + E5 hybrid reaches **61.95%** ([docs/dense_retrieval.md](docs/dense_retrieval.md)). All hyperparameters were chosen on a tuning slice of the development-training partition; validation was evaluated once. See [the BM25 v2 record](docs/bm25_v2.md). The earlier SQLite comparisons are in [the BM25 comparison](docs/bm25_tuning.md) and [the original baseline](docs/bm25_baseline.md). Dense retrieval and learning-to-rank are future steps.
+The improved BM25 (BM25F, plural folding, and supervised Robertson–Spärck Jones query weights) reaches **57.83% local Recall@10** on the 4,000 held-out validation queries against all 50,000 products, and **0.57538** on Kaggle. Adding a thresholded bonus from labelled training reviews (review expansion) gives the best Kaggle score so far, **0.60761**. The original BM25 reached 36.25% locally (Kaggle 0.38120). Zero-shot E5 dense retrieval reaches 46.23% locally on its own, and a BM25 v2 + E5 hybrid reaches **61.95%**. Kaggle: dense alone 0.47738; hybrid on top of BM25 review expansion **0.64699**, the current best ([docs/dense_retrieval.md](docs/dense_retrieval.md)). All hyperparameters were chosen on a tuning slice of the development-training partition; validation was evaluated once. See [the BM25 v2 record](docs/bm25_v2.md). The earlier SQLite comparisons are in [the BM25 comparison](docs/bm25_tuning.md) and [the original baseline](docs/bm25_baseline.md). Dense retrieval and learning-to-rank are future steps.
 
 ## Data setup
 
@@ -90,6 +90,10 @@ python scripts/validate_submission.py outputs/bm25_v2_expansion/2024320020_final
 ## Dense retrieval (E5, zero-shot)
 
 Embeddings are computed on a GPU with `notebooks/dense_encode_colab.ipynb` (`scripts/encode_dense.py`, `requirements-dense.txt`). Evaluation, BM25 + dense fusion, and submissions run locally with NumPy: `python scripts/run_dense.py --predict-test --student-id 2024320020 --workers 8`. See [docs/dense_retrieval.md](docs/dense_retrieval.md) for model-eligibility evidence and the protocol.
+
+## Learning-to-rank fine-tuning (E5)
+
+`scripts/mine_negatives.py` (local) mines first-stage hard negatives (item IDs only). `notebooks/ltr_finetune_colab.ipynb` (`scripts/train_dense_ltr.py`) fine-tunes e5-base-v2 on a GPU with a listwise softmax ranking loss. `scripts/run_dense.py --embeddings outputs/dense/e5-ltr-dev --test-embeddings outputs/dense/e5-ltr-full ...` evaluates the result and writes submissions locally. Protocol and results: [docs/ltr_finetuning.md](docs/ltr_finetuning.md).
 
 ## Compare BM25 weighting and review fusion
 

@@ -31,14 +31,14 @@ This writes `outputs/dense_eval/e5-base-v2/dense_only/2024320020_final.csv`, `ou
 
 ## Results
 
-Local results are on the 4,000 held-out validation queries, searching all 50,000 products. They are not Kaggle scores.
+Local results are on the 4,000 held-out validation queries, searching all 50,000 products. Kaggle scores are student-reported. The hybrid submission (0.64699) is the current best and improves on BM25 v2 with review expansion (0.60761) by 3.9 points.
 
 | Method | Recall@1 | Recall@5 | Recall@10 | Kaggle |
 | --- | ---: | ---: | ---: | ---: |
-| E5 zero-shot, mean of five review similarities | 18.33% | 36.78% | 46.23% | pending |
+| E5 zero-shot, mean of five review similarities | 18.33% | 36.78% | 46.23% | 0.47738 |
 | E5 zero-shot, max of five review similarities | 18.65% | 34.95% | 43.93% | not submitted |
 | BM25 v2, metadata only (alpha = 0) | 27.65% | 47.60% | 57.83% | 0.57538 |
-| **BM25 v2 + E5 hybrid (alpha = 3)** | **30.18%** | **51.73%** | **61.95%** | pending (test file includes BM25 review expansion) |
+| **BM25 v2 + E5 hybrid (alpha = 3)** | **30.18%** | **51.73%** | **61.95%** | **0.64699** (test file includes BM25 review expansion) |
 
 Tuning-slice Recall@10 by alpha: 0 → 55.80%, 0.5 → 57.90%, 1 → 59.23%, 2 → 60.50%, **3 → 60.68%**, 4 → 60.22%, 5 → 59.92%, 7 → 58.40%, 10 → 56.83%. The first grid stopped at 3, its upper edge, so the grid was extended on the tuning slice and the run repeated. The selection and every output file were byte-identical, and validation was never used for selection.
 

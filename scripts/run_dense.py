@@ -90,6 +90,9 @@ def main():
     parser.add_argument("--data-dir", type=Path, default=ROOT / "project_release")
     parser.add_argument("--split", type=Path, default=ROOT / "artifacts/dev_split.json")
     parser.add_argument("--embeddings", type=Path, default=ROOT / "outputs/dense/e5-base-v2")
+    parser.add_argument("--test-embeddings", type=Path,
+                        help="Use a different embedding directory (e.g. the model trained on all training "
+                             "queries) for test predictions; validation always uses --embeddings")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "outputs/dense_eval/e5-base-v2")
     parser.add_argument("--workers", type=int, default=min(8, os.cpu_count() or 1))
     parser.add_argument("--alpha", type=float, help="Skip tuning and use this hybrid weight")
@@ -186,14 +189,19 @@ def main():
     # 3) Test predictions: dense only, and hybrid on top of the Kaggle-best BM25 (with review expansion).
     if args.predict_test:
         test = read_json(args.data_dir / "test_queries.json")
-        if manifest["source_sha256"]["test_queries.json"] != sha256(args.data_dir / "test_queries.json"):
-            raise ValueError("Test embeddings were computed from a different test_queries.json")
-        test_emb = np.load(args.embeddings / "test_reviews.npy").reshape(len(test), 5, -1)
+        test_dir = args.test_embeddings or args.embeddings
+        test_manifest = json.loads((test_dir / "manifest.json").read_text(encoding="utf-8"))
+        for name in ("catalog.json", "test_queries.json"):
+            if test_manifest["source_sha256"][name] != sha256(args.data_dir / name):
+                raise ValueError(f"Test embeddings were computed from a different {name}")
+        test_emb = np.load(test_dir / "test_reviews.npy").reshape(len(test), 5, -1)
+        test_catalog = np.load(test_dir / "catalog.npy") if args.test_embeddings else catalog_emb
+        metrics["test_embeddings_manifest"] = test_manifest
         t = time.perf_counter()
         print("Test predictions...", flush=True)
         retriever.config = with_expansion(BM25_CONFIG)
         retriever.learn([(q["item_id"], tokens[q["query_id"]]) for q in train])
-        ranked = rank(retriever, catalog_emb, [review_token_lists(q, stem) for q in test], list(test_emb), args.workers)
+        ranked = rank(retriever, test_catalog, [review_token_lists(q, stem) for q in test], list(test_emb), args.workers)
         query_ids = [q["query_id"] for q in test]
         files = {"dense_only": "dense_mean", "hybrid_bm25_expansion_dense": f"hybrid_{best}"}
         metrics["test_csv"] = {}

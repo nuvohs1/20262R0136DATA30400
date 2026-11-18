@@ -84,9 +84,10 @@ def main():
     out_dir = args.output_dir / args.tag
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model, revision=args.revision)
-    model = AutoModel.from_pretrained(args.model, revision=args.revision).to(device).eval()
-    revision = args.revision
+    # A local fine-tuned checkpoint directory has no Hub revision.
+    revision = None if Path(args.model).is_dir() else (args.revision or None)
+    tokenizer = AutoTokenizer.from_pretrained(args.model, revision=revision)
+    model = AutoModel.from_pretrained(args.model, revision=revision).to(device).eval()
 
     catalog = sorted(read_json(args.data_dir / "catalog.json"), key=lambda p: p["item_id"])
     train = read_json(args.data_dir / "train_gold.json")
@@ -113,7 +114,7 @@ def main():
     manifest_path = out_dir / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
     manifest.update({
-        "model": args.model, "model_revision": revision, "pooling": "mean over attention mask, L2-normalized",
+        "model": args.model, "model_revision": revision or "local checkpoint", "pooling": "mean over attention mask, L2-normalized",
         "prefixes": {"catalog": "passage: ", "reviews": "query: "},
         "passage_max_length": args.passage_max_length, "review_max_length": args.review_max_length,
         "dtype": "float16", "hidden_size": model.config.hidden_size,
