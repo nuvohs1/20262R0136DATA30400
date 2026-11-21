@@ -92,7 +92,7 @@ python scripts/validate_submission.py outputs/bm25_v2_expansion/2024320020_final
 Only `google-bert/bert-base-uncased` at a pinned revision may be loaded. `src/review_retrieval/model_policy.py` enforces this in every script; evidence is in [docs/model_eligibility.md](docs/model_eligibility.md).
 
 1. Locally: `python scripts/mine_negatives.py --workers 8` mines BM25 hard negatives (item IDs only) into `outputs/ltr/`.
-2. On a GPU (Colab T4): `notebooks/gpu_colab.ipynb` runs `bash run_gpu.sh` (`requirements-dense.txt`). It computes zero-shot BERT embeddings, fine-tunes BERT with a listwise softmax ranking loss (model A on 12,000 development-training queries, model B on all 20,000), and encodes with both models. Finished steps are skipped on re-runs.
+2. On a GPU (Colab T4): `notebooks/gpu_colab.ipynb` runs `bash run_gpu.sh` (`requirements-dense.txt`). It computes zero-shot BERT embeddings, fine-tunes BERT with a listwise softmax ranking loss (model A on 12,000 development-training queries, model B on all 20,000), and encodes with both models. Finished steps are skipped on re-runs. On the course AWS SageMaker notebook (NVIDIA L4), `notebooks/aws_sagemaker.ipynb` runs the same `run_gpu.sh` followed by `run_dense_eval.sh` (step 3 below).
 3. Locally, NumPy only:
 
 ```bash

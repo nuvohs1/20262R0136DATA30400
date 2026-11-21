@@ -8,6 +8,8 @@ project_release/*.json
 project_release/*.txt
 final_project.pdf
 Tutorial class*.pdf
+/AWS_SageMaker*.pdf
+*.zip
 outputs/
 checkpoints/
 *.pt
