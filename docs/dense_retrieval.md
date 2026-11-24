@@ -31,7 +31,7 @@ Local validation (4,000 held-out queries, full catalog):
 | Method | R@1 | R@5 | R@10 | Kaggle R@10 |
 | --- | --- | --- | --- | --- |
 | BM25 v2 (metadata only, reference) | 27.65% | 47.60% | 57.83% | 0.57538 |
-| Zero-shot BERT, mean of five reviews | 0.27% | 0.92% | 1.70% | pending |
+| Zero-shot BERT, mean of five reviews | 0.27% | 0.92% | 1.70% | 0.02306 |
 | Zero-shot BERT, max over reviews | 0.35% | 1.47% | 2.38% | — |
 | BM25 v2 + α · zero-shot BERT (α = 0 selected) | 27.65% | 47.60% | 57.83% | = BM25 v2 + expansion, 0.60761 |
 

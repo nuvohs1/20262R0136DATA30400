@@ -1,0 +1,82 @@
+{
+  "evaluation": "local development validation: 4,000 held-out queries, full 50,000-product catalog, one relevant item per query",
+  "definitions": "see src/review_retrieval/metrics.py",
+  "split_sha256": "d27e8670212d193f55eee5b88510d3ebe109d82d0dd16923fff9ab3fa6eb6d00",
+  "results": {
+    "BM25 (original baseline)": {
+      "file": "outputs/bm25_baseline/validation_predictions.csv",
+      "recall@1": 0.132,
+      "precision@1": 0.132,
+      "ndcg@1": 0.132,
+      "mrr@1": 0.132,
+      "recall@5": 0.28025,
+      "precision@5": 0.05605,
+      "ndcg@5": 0.20828,
+      "mrr@5": 0.18461,
+      "recall@10": 0.3625,
+      "precision@10": 0.03625,
+      "ndcg@10": 0.23476,
+      "mrr@10": 0.19548
+    },
+    "BM25 v2 (metadata only)": {
+      "file": "outputs/bm25_v2/validation_predictions.csv",
+      "recall@1": 0.2765,
+      "precision@1": 0.2765,
+      "ndcg@1": 0.2765,
+      "mrr@1": 0.2765,
+      "recall@5": 0.476,
+      "precision@5": 0.0952,
+      "ndcg@5": 0.38158,
+      "mrr@5": 0.35025,
+      "recall@10": 0.57825,
+      "precision@10": 0.05782,
+      "ndcg@10": 0.41455,
+      "mrr@10": 0.3638
+    },
+    "Dense: zero-shot BERT": {
+      "file": "outputs/dense_eval/bert-base-uncased/validation_dense_mean.csv",
+      "recall@1": 0.00275,
+      "precision@1": 0.00275,
+      "ndcg@1": 0.00275,
+      "mrr@1": 0.00275,
+      "recall@5": 0.00925,
+      "precision@5": 0.00185,
+      "ndcg@5": 0.00615,
+      "mrr@5": 0.00513,
+      "recall@10": 0.017,
+      "precision@10": 0.0017,
+      "ndcg@10": 0.00864,
+      "mrr@10": 0.00614
+    },
+    "Dense: LTR fine-tuned BERT": {
+      "file": "outputs/dense_eval/bert-ltr/validation_dense_mean.csv",
+      "recall@1": 0.16,
+      "precision@1": 0.16,
+      "ndcg@1": 0.16,
+      "mrr@1": 0.16,
+      "recall@5": 0.34825,
+      "precision@5": 0.06965,
+      "ndcg@5": 0.25795,
+      "mrr@5": 0.22812,
+      "recall@10": 0.45675,
+      "precision@10": 0.04567,
+      "ndcg@10": 0.29308,
+      "mrr@10": 0.24264
+    },
+    "Hybrid: BM25 v2 + LTR BERT (alpha 3)": {
+      "file": "outputs/dense_eval/bert-ltr/validation_hybrid_3.0.csv",
+      "recall@1": 0.3295,
+      "precision@1": 0.3295,
+      "ndcg@1": 0.3295,
+      "mrr@1": 0.3295,
+      "recall@5": 0.57275,
+      "precision@5": 0.11455,
+      "ndcg@5": 0.45777,
+      "mrr@5": 0.41962,
+      "recall@10": 0.66725,
+      "precision@10": 0.06672,
+      "ndcg@10": 0.48833,
+      "mrr@10": 0.43224
+    }
+  }
+}

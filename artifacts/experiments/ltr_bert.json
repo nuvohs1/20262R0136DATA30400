@@ -133,8 +133,8 @@
     "numpy": "2.2.6"
   },
   "kaggle_recall_at_10": {
-    "dense_only": null,
-    "hybrid_bm25_expansion_dense": null
+    "dense_only": 0.56058,
+    "hybrid_bm25_expansion_dense": 0.72333
   },
   "training": {
     "bert-ltr-dev": {

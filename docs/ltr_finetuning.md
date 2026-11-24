@@ -71,11 +71,13 @@ Local validation (4,000 held-out queries, full catalog; model A embeddings, α t
 | --- | --- | --- | --- | --- |
 | BM25 v2 (metadata only) | 27.65% | 47.60% | 57.83% | 0.57538 |
 | BM25 v2 + review expansion | —¹ | —¹ | —¹ | 0.60761 |
-| Zero-shot BERT (dense only) | 0.27% | 0.92% | 1.70% | pending |
-| LTR fine-tuned BERT (dense only, mean of reviews) | 16.00% | 34.83% | 45.67% | pending |
+| Zero-shot BERT (dense only) | 0.27% | 0.92% | 1.70% | 0.02306 |
+| LTR fine-tuned BERT (dense only, mean of reviews) | 16.00% | 34.83% | 45.67% | 0.56058 |
 | LTR fine-tuned BERT (max over reviews) | 12.15% | 27.17% | 36.48% | — |
-| BM25 v2 + 3 · LTR BERT (hybrid) | 32.95% | 57.27% | **66.73%** | pending (test uses BM25 with expansion) |
+| BM25 v2 + 3 · LTR BERT (hybrid) | 32.95% | 57.27% | **66.73%** | **0.72333** (test uses BM25 with expansion) |
 
 ¹ Not measurable locally: the development split keeps every product in one partition, so validation products never appear among the labelled training reviews, whereas about half of the test products do ([BM25 v2](bm25_v2.md)).
 
 Fine-tuning raises dense-only Recall@10 from 1.70% to 45.67%. The hybrid adds 8.9 points over BM25 alone. The tuning-slice curve peaks at α = 3 (65.58%) and is flat between 2 and 4. On validation the same region is best (66.37–66.73%), so the choice transfers. On test, the hybrid's top-1 agrees with the BM25 + expansion submission for 56.8% of queries, and the two top-10 lists share 6.0 items on average.
+
+On Kaggle the hybrid scores 0.72333, 11.6 points above the best BM25 file (0.60761), and is the current best submission. Kaggle scores are higher than local validation for the dense and hybrid runs (0.56058 vs 45.67%, 0.72333 vs 66.73%). This is expected: model B is trained on all 20,000 training queries, and about half of the test products occur in training, whereas no validation product occurs in model A's training data.

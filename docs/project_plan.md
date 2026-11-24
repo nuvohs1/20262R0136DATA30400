@@ -56,8 +56,8 @@ The report must explain the final matching method and design rationale; include 
 4. BM25 field weighting, review aggregation, and query comparisons (complete: seven configurations; original baseline retained).
    - BM25 v2 (complete: BM25F k1 2.5 / b 1.0, plural folding, supervised RSJ query weights; held-out local Recall@10 57.83%; Kaggle 0.57538. With labelled-review expansion: Kaggle 0.60761, current best).
 5. Eligible dense model selection and embedding pipeline (bert-base-uncased, revision pinned, allow-list enforced in code).
-6. Dense baseline validation and Kaggle prediction (complete locally: zero-shot BERT 1.70% local Recall@10; hybrid selects α = 0; Kaggle pending).
-7. Learning-to-rank training with BM25 hard negatives (complete locally on AWS L4: dense 45.67%, BM25 v2 + LTR BERT hybrid 66.73% local Recall@10; Kaggle pending).
+6. Dense baseline validation and Kaggle prediction (complete locally: zero-shot BERT 1.70% local Recall@10; hybrid selects α = 0; Kaggle 0.02306).
+7. Learning-to-rank training with BM25 hard negatives (complete locally on AWS L4: dense 45.67%, BM25 v2 + LTR BERT hybrid 66.73% local Recall@10; Kaggle dense 0.56058, hybrid 0.72333 = current best).
 8. Further class techniques, each with course data and the allowed checkpoint only: ANN index (IVF) for dense search; multi-stage ranking with a BERT cross-encoder reranker; pseudo-labeling / self-training on unlabeled test reviews; category labels as auxiliary information (multi-task learning); Precision@N, Recall@N, NDCG@N evaluation.
 9. Final selection, reproducibility runner, and submission checks.
 10. Case studies, report, and final reproduction documentation.

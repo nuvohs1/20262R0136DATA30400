@@ -100,7 +100,7 @@
     "numpy": "2.2.6"
   },
   "kaggle_recall_at_10": {
-    "dense_only": null,
+    "dense_only": 0.02306,
     "hybrid_bm25_expansion_dense": "alpha 0 selected: file is byte-identical to outputs/bm25_v2_expansion (Kaggle 0.60761)"
   }
 }
