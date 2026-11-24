@@ -58,9 +58,10 @@ The report must explain the final matching method and design rationale; include 
 5. Eligible dense model selection and embedding pipeline (bert-base-uncased, revision pinned, allow-list enforced in code).
 6. Dense baseline validation and Kaggle prediction (complete locally: zero-shot BERT 1.70% local Recall@10; hybrid selects α = 0; Kaggle 0.02306).
 7. Learning-to-rank training with BM25 hard negatives (complete locally on AWS L4: dense 45.67%, BM25 v2 + LTR BERT hybrid 66.73% local Recall@10; Kaggle dense 0.56058, hybrid 0.72333 = current best).
-8. Further class techniques, each with course data and the allowed checkpoint only: ANN index (IVF) for dense search; multi-stage ranking with a BERT cross-encoder reranker; pseudo-labeling / self-training on unlabeled test reviews; category labels as auxiliary information (multi-task learning); Precision@N, Recall@N, NDCG@N evaluation.
-9. Final selection, reproducibility runner, and submission checks.
-10. Case studies, report, and final reproduction documentation.
+8. Multi-stage ranking with a BERT cross-encoder reranker (implemented; AWS run pending).
+9. Further class techniques, each with course data and the allowed checkpoint only: ANN index (IVF) for dense search; pseudo-labeling / self-training on unlabeled test reviews; category labels as auxiliary information (multi-task learning); Precision@N, Recall@N, NDCG@N evaluation (implemented: docs/evaluation_metrics.md).
+10. Final selection, reproducibility runner, and submission checks.
+11. Case studies, report, and final reproduction documentation.
 
 These are substantive checkpoints, not a reason to create empty or artificial commits. Steps may be adjusted based on measured results. Student ID: 2024320020. Course template, Kaggle competition URL, assigned User ID, and compute resources for neural models still need to be confirmed before their dependent tasks. The student handles Kaggle uploads.
 

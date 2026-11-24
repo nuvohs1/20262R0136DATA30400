@@ -104,6 +104,10 @@ python scripts/run_dense.py --embeddings outputs/dense/bert-ltr-dev --test-embed
 
 Protocols and results: [docs/dense_retrieval.md](docs/dense_retrieval.md), [docs/ltr_finetuning.md](docs/ltr_finetuning.md).
 
+## Multi-stage ranking (BERT cross-encoder reranker)
+
+`bash run_rerank.sh 2024320020 8` (GPU) takes the top 50 candidates of the BM25 v2 + fine-tuned BERT hybrid and reranks them with a BERT cross-encoder trained with a listwise loss on the course training pairs. The fusion weight is chosen on the tuning slice. The script writes `outputs/rerank/submission/2024320020_final.csv`. Details: [docs/reranking.md](docs/reranking.md).
+
 ## Compare BM25 weighting and review fusion
 
 ```bash
