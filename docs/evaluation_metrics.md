@@ -16,7 +16,10 @@
 | Dense: zero-shot BERT | 0.0027 | 0.0092 | 0.0170 | 0.0019 | 0.0017 | 0.0062 | 0.0086 | 0.0061 | 0.02306 |
 | Dense: LTR fine-tuned BERT | 0.1600 | 0.3483 | 0.4567 | 0.0697 | 0.0457 | 0.2580 | 0.2931 | 0.2426 | 0.56058 |
 | Hybrid: BM25 v2 + LTR BERT (α = 3) | 0.3295 | 0.5727 | 0.6673 | 0.1145 | 0.0667 | 0.4578 | 0.4883 | 0.4322 | 0.72333¹ |
+| Multi-stage: hybrid top 50 + BERT cross-encoder (w = 0.5) | 0.3767 | 0.6130 | 0.7073 | 0.1226 | 0.0707 | 0.5040 | 0.5344 | 0.4801 | pending¹ |
 
 ¹ The test file uses BM25 v2 with labelled-review expansion (Kaggle 0.60761 on its own). Expansion cannot be measured on the local validation split, because validation products never appear in training.
 
 The hybrid improves every metric. Its NDCG@10 gain over BM25 v2 (+0.074) is a little smaller than its Recall@10 gain (+0.089). Part of the gain therefore comes from moving the correct product into the top 10 from lower ranks, not only from reordering within it.
+
+The cross-encoder reranker adds +0.046 NDCG@10 and +0.047 Recall@1 on top of the hybrid, slightly more than its Recall@10 gain (+0.040). Most of its effect is reordering within the candidate list: the correct product moves toward rank 1 ([multi-stage ranking](reranking.md)).

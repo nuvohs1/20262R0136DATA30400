@@ -77,6 +77,21 @@
       "precision@10": 0.06672,
       "ndcg@10": 0.48833,
       "mrr@10": 0.43224
+    },
+    "Multi-stage: hybrid top 50 + BERT cross-encoder (w 0.5)": {
+      "file": "outputs/rerank/submission/validation_reranked.csv",
+      "recall@1": 0.37675,
+      "precision@1": 0.37675,
+      "ndcg@1": 0.37675,
+      "mrr@1": 0.37675,
+      "recall@5": 0.613,
+      "precision@5": 0.1226,
+      "ndcg@5": 0.50397,
+      "mrr@5": 0.46758,
+      "recall@10": 0.70725,
+      "precision@10": 0.07072,
+      "ndcg@10": 0.53436,
+      "mrr@10": 0.48007
     }
   }
 }

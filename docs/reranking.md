@@ -37,4 +37,37 @@ The final file is `outputs/rerank/submission/2024320020_final.csv`, and metrics 
 
 ## Results
 
-Pending the AWS run.
+Run on the course AWS notebook (NVIDIA L4, Python 3.10.20, torch 2.10.0+cu128, transformers 5.20.2). Full record: `artifacts/experiments/rerank_bert.json`.
+
+**Candidate recall of stage 1** (share of queries whose correct product is in the top N candidates):
+
+| Split | @10 | @20 | @30 | @50 |
+| --- | --- | --- | --- | --- |
+| Tuning slice (4,000) | 0.6558 | 0.7560 | 0.8143 | 0.8755 |
+| Validation (4,000) | 0.6673 | 0.7668 | 0.8158 | 0.8790 |
+
+With K = 50, reranking can reach at most 87.9% Recall@10 on validation.
+
+**Model A training** (12,000 queries, 1,500 steps per epoch, about 33 minutes per epoch). Mean loss: 1.451 (epoch 1), 0.962 (epoch 2). Tuning-slice Recall@10 at the best w: 0.6940 (epoch 1) and 0.6950 (epoch 2), so epoch 2 is selected. Model B (20,000 queries, 2,500 steps per epoch) stops after epoch 2, with losses of 1.385 and 0.925.
+
+**Fusion weight on the tuning slice** (model A, epoch 2):
+
+| w | 0.0 | 0.1 | 0.2 | 0.3 | 0.4 | **0.5** | 0.6 | 0.7 | 0.8 | 0.9 | 1.0 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| R@10 | 0.6558 | 0.6643 | 0.6750 | 0.6853 | 0.6923 | **0.6950** | 0.6915 | 0.6875 | 0.6765 | 0.6605 | 0.6400 |
+
+**Validation** (4,000 queries, evaluated once, w = 0.5 fixed beforehand):
+
+| Ranking | R@1 | R@5 | R@10 | NDCG@10 | MRR@10 |
+| --- | --- | --- | --- | --- | --- |
+| Stage 1 only (w = 0) | 0.3295 | 0.5728 | 0.6673 | 0.4883 | 0.4322 |
+| Cross-encoder only (w = 1) | 0.3018 | 0.5360 | 0.6380 | 0.4592 | 0.4033 |
+| **Fused (w = 0.5)** | **0.3768** | **0.6130** | **0.7073** | **0.5344** | **0.4801** |
+
+Observations:
+
+- On its own, the cross-encoder ranks the 50 candidates slightly worse than stage 1 (−2.9 points of Recall@10). The two scores are complementary, though. Fusing them gains +4.0 points of Recall@10 and +4.7 points of Recall@1 over stage 1, and the gain is largest at the top of the list.
+- The tuning-slice curve is smooth and peaks at w = 0.5. The validation gain (+4.0) matches the tuning-slice gain (+3.9), so the choice of w did not overfit the tuning slice.
+- The selected epoch differs little from epoch 1 (0.6950 vs 0.6940). Longer training is unlikely to help much.
+
+**Test file:** `outputs/rerank/submission/2024320020_final.csv` (19,858 rows, ten distinct valid IDs per row, sha256 `e16dacbe…`). The test candidates' top 10 equal the stage-1 hybrid submission (Kaggle 0.72333), as checked by `run_rerank_eval.py`. Reranking changes the top-1 product for 6,744 of the 19,858 test queries. Kaggle Recall@10: pending submission.
