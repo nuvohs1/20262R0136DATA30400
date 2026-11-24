@@ -1,0 +1,252 @@
+{
+  "method": "dense retrieval (fine-tuned checkpoint of google-bert/bert-base-uncased) and BM25 v2 + dense hybrid",
+  "evaluation": "local development validation (4,000 queries, full 50,000-product catalog); not a Kaggle score",
+  "selected_alpha": 3.0,
+  "alpha_grid": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    1.5,
+    2.0,
+    3.0,
+    4.0,
+    5.0,
+    7.0,
+    10.0
+  ],
+  "tuning_slice_recall_at_10": {
+    "dense_mean": 0.44475,
+    "dense_max": 0.35325,
+    "hybrid_0.0": 0.558,
+    "hybrid_0.25": 0.57775,
+    "hybrid_0.5": 0.599,
+    "hybrid_0.75": 0.61375,
+    "hybrid_1.0": 0.626,
+    "hybrid_1.5": 0.6415,
+    "hybrid_2.0": 0.64825,
+    "hybrid_3.0": 0.65575,
+    "hybrid_4.0": 0.65225,
+    "hybrid_5.0": 0.64625,
+    "hybrid_7.0": 0.6275,
+    "hybrid_10.0": 0.6135
+  },
+  "validation": {
+    "dense_mean": {
+      "recall_at_1": 0.16,
+      "recall_at_5": 0.34825,
+      "recall_at_10": 0.45675
+    },
+    "dense_max": {
+      "recall_at_1": 0.1215,
+      "recall_at_5": 0.27175,
+      "recall_at_10": 0.36475
+    },
+    "hybrid_0.0": {
+      "recall_at_1": 0.2765,
+      "recall_at_5": 0.476,
+      "recall_at_10": 0.57825
+    },
+    "hybrid_3.0": {
+      "recall_at_1": 0.3295,
+      "recall_at_5": 0.57275,
+      "recall_at_10": 0.66725
+    }
+  },
+  "embeddings": {
+    "embeddings_manifest": {
+      "kind": "fine-tuned checkpoint",
+      "base_model": "google-bert/bert-base-uncased",
+      "base_revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "provenance": {
+        "base_model": "google-bert/bert-base-uncased",
+        "base_revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+        "fine_tuning_data": "course train_gold.json only",
+        "train_gold_sha256": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+        "catalog_sha256": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+        "negatives_sha256": "997b73fe08cc06748f653070c2afb977fbae4124136dfc7ca49b9f27bcfe8181",
+        "negatives_set": "dev",
+        "train_queries": 12000,
+        "objective": "listwise softmax cross-entropy (in-batch + BM25 hard negatives)",
+        "query_prefix": "",
+        "passage_prefix": "",
+        "epoch": 3
+      },
+      "model": "outputs/ltr/bert-ltr-dev/checkpoint",
+      "environment": {
+        "python": "3.10.20",
+        "torch": "2.10.0+cu128",
+        "transformers": "5.20.2",
+        "device": "NVIDIA L4"
+      }
+    },
+    "test_embeddings_manifest": {
+      "kind": "fine-tuned checkpoint",
+      "base_model": "google-bert/bert-base-uncased",
+      "base_revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "provenance": {
+        "base_model": "google-bert/bert-base-uncased",
+        "base_revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+        "fine_tuning_data": "course train_gold.json only",
+        "train_gold_sha256": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+        "catalog_sha256": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+        "negatives_sha256": "93738e3065160619bd528395ec8e9b98aff0733da29fc466b52121e5c39a5571",
+        "negatives_set": "full",
+        "train_queries": 20000,
+        "objective": "listwise softmax cross-entropy (in-batch + BM25 hard negatives)",
+        "query_prefix": "",
+        "passage_prefix": "",
+        "epoch": 3
+      },
+      "model": "outputs/ltr/bert-ltr-full/checkpoint",
+      "environment": {
+        "python": "3.10.20",
+        "torch": "2.10.0+cu128",
+        "transformers": "5.20.2",
+        "device": "NVIDIA L4"
+      }
+    }
+  },
+  "test_csv": {
+    "dense_only": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "a0f36a57ebc00289d1a85a66c82586b2e15b1c2f1340ddcfe78436e49869057d"
+    },
+    "hybrid_bm25_expansion_dense": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "fb5b6b67df794f45e5ec36f8a9546c027185f352e50c696a062da8d8d49ac50f"
+    }
+  },
+  "leakage_controls": {
+    "encoder": "fine-tuned on the 12,000 development-training queries outside the tuning slice",
+    "alpha_selection": "4,000-query tuning slice of development-training; BM25 RSJ from the other 12,000",
+    "validation": "evaluated once; BM25 RSJ from 16,000 development-training queries",
+    "test": "BM25 RSJ and review index from all 20,000 training queries"
+  },
+  "evaluation_environment": {
+    "python": "3.10.20",
+    "numpy": "2.2.6"
+  },
+  "kaggle_recall_at_10": {
+    "dense_only": null,
+    "hybrid_bm25_expansion_dense": null
+  },
+  "training": {
+    "bert-ltr-dev": {
+      "selected_epoch": 3,
+      "epochs": [
+        {
+          "epoch": 1,
+          "mean_loss": 1.6278150345484417,
+          "seconds": 816.2734460789998,
+          "tuning_slice_dense": {
+            "recall_at_1": 0.1235,
+            "recall_at_10": 0.361
+          }
+        },
+        {
+          "epoch": 2,
+          "mean_loss": 0.9157862606048583,
+          "seconds": 813.3933959289998,
+          "tuning_slice_dense": {
+            "recall_at_1": 0.139,
+            "recall_at_10": 0.42575
+          }
+        },
+        {
+          "epoch": 3,
+          "mean_loss": 0.6716360908349355,
+          "seconds": 817.4365382360002,
+          "tuning_slice_dense": {
+            "recall_at_1": 0.1535,
+            "recall_at_10": 0.44475
+          }
+        },
+        {
+          "epoch": 4,
+          "mean_loss": 0.5515612739721935,
+          "seconds": 819.9719635189995,
+          "tuning_slice_dense": {
+            "recall_at_1": 0.15525,
+            "recall_at_10": 0.44325
+          }
+        }
+      ],
+      "environment": {
+        "python": "3.10.20",
+        "torch": "2.10.0+cu128",
+        "transformers": "5.20.2",
+        "device": "NVIDIA L4"
+      },
+      "args": {
+        "data_dir": "/home/ec2-user/SageMaker/DATA304_final_project/project_release",
+        "negatives": "outputs/ltr/negatives_dev.json",
+        "model": "google-bert/bert-base-uncased",
+        "revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+        "output_dir": "outputs/ltr/bert-ltr-dev",
+        "epochs": "4",
+        "stop_after_epoch": "None",
+        "batch_size": "32",
+        "hard_negatives": "3",
+        "negative_pool": "30",
+        "lr": "2e-05",
+        "temperature": "0.05",
+        "warmup_ratio": "0.1",
+        "review_max_length": "192",
+        "passage_max_length": "256",
+        "query_prefix": "",
+        "passage_prefix": ""
+      }
+    },
+    "bert-ltr-full": {
+      "selected_epoch": 3,
+      "epochs": [
+        {
+          "epoch": 1,
+          "mean_loss": 1.4964711267471313,
+          "seconds": 1361.5895449459995
+        },
+        {
+          "epoch": 2,
+          "mean_loss": 0.8587544235229492,
+          "seconds": 1364.4198727959993
+        },
+        {
+          "epoch": 3,
+          "mean_loss": 0.6426144567489624,
+          "seconds": 1364.370641174999
+        }
+      ],
+      "environment": {
+        "python": "3.10.20",
+        "torch": "2.10.0+cu128",
+        "transformers": "5.20.2",
+        "device": "NVIDIA L4"
+      },
+      "args": {
+        "data_dir": "/home/ec2-user/SageMaker/DATA304_final_project/project_release",
+        "negatives": "outputs/ltr/negatives_full.json",
+        "model": "google-bert/bert-base-uncased",
+        "revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+        "output_dir": "outputs/ltr/bert-ltr-full",
+        "epochs": "4",
+        "stop_after_epoch": "3",
+        "batch_size": "32",
+        "hard_negatives": "3",
+        "negative_pool": "30",
+        "lr": "2e-05",
+        "temperature": "0.05",
+        "warmup_ratio": "0.1",
+        "review_max_length": "192",
+        "passage_max_length": "256",
+        "query_prefix": "",
+        "passage_prefix": ""
+      }
+    }
+  }
+}

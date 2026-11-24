@@ -9,6 +9,7 @@ project_release/*.txt
 final_project.pdf
 Tutorial class*.pdf
 /AWS_SageMaker*.pdf
+/example solutions/
 *.zip
 outputs/
 checkpoints/

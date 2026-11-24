@@ -42,7 +42,7 @@ Model A never trains on the validation queries, and they are not used for any ch
 ## How to run
 
 1. Locally: `python scripts/mine_negatives.py --workers 8` creates `outputs/ltr/negatives_{dev,full}.json`.
-2. GPU (Colab T4): `notebooks/gpu_colab.ipynb`, steps 2 and 3 (`bash run_gpu.sh ltr-dev`, `bash run_gpu.sh ltr-full`). These train A, encode with A (catalog and train), train B, and encode with B (catalog and test).
+2. GPU: `notebooks/aws_sagemaker.ipynb` (course AWS L4) or `notebooks/gpu_colab.ipynb` (Colab), steps 2 and 3 (`bash run_gpu.sh ltr-dev`, `bash run_gpu.sh ltr-full`). These train A, encode with A (catalog and train), train B, and encode with B (catalog and test).
 3. Locally:
 
 ```bash
@@ -52,4 +52,30 @@ python scripts/run_dense.py --embeddings outputs/dense/bert-ltr-dev --test-embed
 
 ## Results
 
-Pending the Colab run.
+Trained on the course AWS SageMaker instance (NVIDIA L4; Python 3.10.20, torch 2.10.0+cu128, transformers 5.20.2). An epoch took about 815 s for model A and 1,363 s for model B. Record: `artifacts/experiments/ltr_bert.json`.
+
+Model A, dense-only retrieval on the 4,000-query tuning slice after each epoch (epoch selection):
+
+| Epoch | Mean loss | R@1 | R@10 |
+| --- | --- | --- | --- |
+| 1 | 1.628 | 12.35% | 36.10% |
+| 2 | 0.916 | 13.90% | 42.58% |
+| **3 (selected)** | 0.672 | 15.35% | **44.48%** |
+| 4 | 0.552 | 15.53% | 44.33% |
+
+Model B was trained on all 20,000 queries for the same schedule and stopped after epoch 3 (mean loss 1.496, 0.859, 0.643).
+
+Local validation (4,000 held-out queries, full catalog; model A embeddings, α tuned on the tuning slice):
+
+| Method | R@1 | R@5 | R@10 | Kaggle R@10 |
+| --- | --- | --- | --- | --- |
+| BM25 v2 (metadata only) | 27.65% | 47.60% | 57.83% | 0.57538 |
+| BM25 v2 + review expansion | —¹ | —¹ | —¹ | 0.60761 |
+| Zero-shot BERT (dense only) | 0.27% | 0.92% | 1.70% | pending |
+| LTR fine-tuned BERT (dense only, mean of reviews) | 16.00% | 34.83% | 45.67% | pending |
+| LTR fine-tuned BERT (max over reviews) | 12.15% | 27.17% | 36.48% | — |
+| BM25 v2 + 3 · LTR BERT (hybrid) | 32.95% | 57.27% | **66.73%** | pending (test uses BM25 with expansion) |
+
+¹ Not measurable locally: the development split keeps every product in one partition, so validation products never appear among the labelled training reviews, whereas about half of the test products do ([BM25 v2](bm25_v2.md)).
+
+Fine-tuning raises dense-only Recall@10 from 1.70% to 45.67%. The hybrid adds 8.9 points over BM25 alone. The tuning-slice curve peaks at α = 3 (65.58%) and is flat between 2 and 4. On validation the same region is best (66.37–66.73%), so the choice transfers. On test, the hybrid's top-1 agrees with the BM25 + expansion submission for 56.8% of queries, and the two top-10 lists share 6.0 items on average.

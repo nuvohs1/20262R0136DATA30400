@@ -1,0 +1,106 @@
+{
+  "method": "dense retrieval (pretrained checkpoint of google-bert/bert-base-uncased) and BM25 v2 + dense hybrid",
+  "evaluation": "local development validation (4,000 queries, full 50,000-product catalog); not a Kaggle score",
+  "selected_alpha": 0.0,
+  "alpha_grid": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    1.5,
+    2.0,
+    3.0,
+    4.0,
+    5.0,
+    7.0,
+    10.0
+  ],
+  "tuning_slice_recall_at_10": {
+    "dense_mean": 0.0205,
+    "dense_max": 0.02675,
+    "hybrid_0.0": 0.558,
+    "hybrid_0.25": 0.55775,
+    "hybrid_0.5": 0.557,
+    "hybrid_0.75": 0.5515,
+    "hybrid_1.0": 0.547,
+    "hybrid_1.5": 0.53575,
+    "hybrid_2.0": 0.51675,
+    "hybrid_3.0": 0.488,
+    "hybrid_4.0": 0.45425,
+    "hybrid_5.0": 0.4245,
+    "hybrid_7.0": 0.368,
+    "hybrid_10.0": 0.29675
+  },
+  "validation": {
+    "dense_mean": {
+      "recall_at_1": 0.00275,
+      "recall_at_5": 0.00925,
+      "recall_at_10": 0.017
+    },
+    "dense_max": {
+      "recall_at_1": 0.0035,
+      "recall_at_5": 0.01475,
+      "recall_at_10": 0.02375
+    },
+    "hybrid_0.0": {
+      "recall_at_1": 0.2765,
+      "recall_at_5": 0.476,
+      "recall_at_10": 0.57825
+    }
+  },
+  "embeddings": {
+    "embeddings_manifest": {
+      "kind": "pretrained checkpoint",
+      "base_model": "google-bert/bert-base-uncased",
+      "base_revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "model": "google-bert/bert-base-uncased",
+      "environment": {
+        "python": "3.10.20",
+        "torch": "2.10.0+cu128",
+        "transformers": "5.20.2",
+        "device": "NVIDIA L4"
+      }
+    },
+    "test_embeddings_manifest": {
+      "kind": "pretrained checkpoint",
+      "base_model": "google-bert/bert-base-uncased",
+      "base_revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "model": "google-bert/bert-base-uncased",
+      "environment": {
+        "python": "3.10.20",
+        "torch": "2.10.0+cu128",
+        "transformers": "5.20.2",
+        "device": "NVIDIA L4"
+      }
+    }
+  },
+  "test_csv": {
+    "dense_only": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "96ff7181ff9753bc06f23035192dbf081537c8a2299a41bd92cdee76281f3209"
+    },
+    "hybrid_bm25_expansion_dense": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "b59baa9096f0e49c9fa632e12c8b99a77eb86ae8c8168cf97b01243a7085b09f"
+    }
+  },
+  "leakage_controls": {
+    "encoder": "pretrained, zero-shot; no labels used",
+    "alpha_selection": "4,000-query tuning slice of development-training; BM25 RSJ from the other 12,000",
+    "validation": "evaluated once; BM25 RSJ from 16,000 development-training queries",
+    "test": "BM25 RSJ and review index from all 20,000 training queries"
+  },
+  "evaluation_environment": {
+    "python": "3.10.20",
+    "numpy": "2.2.6"
+  },
+  "kaggle_recall_at_10": {
+    "dense_only": null,
+    "hybrid_bm25_expansion_dense": "alpha 0 selected: file is byte-identical to outputs/bm25_v2_expansion (Kaggle 0.60761)"
+  }
+}
