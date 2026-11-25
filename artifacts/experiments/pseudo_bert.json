@@ -617,7 +617,7 @@
     "python": "3.10.20",
     "numpy": "2.2.6"
   },
-  "kaggle_recall_at_10": null,
+  "kaggle_recall_at_10": 0.76936,
   "paired_comparison_vs_rerank_validation": {
     "recall_at_10_wins": 75,
     "recall_at_10_losses": 74,

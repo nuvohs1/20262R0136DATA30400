@@ -112,6 +112,10 @@ Protocols and results: [docs/dense_retrieval.md](docs/dense_retrieval.md), [docs
 
 `bash run_pseudo.sh 2024320020` (GPU, after `run_rerank.sh`) labels unlabeled queries with the confident predictions of the multi-stage ranker (margin threshold at 0.9 precision on the tuning slice) and retrains the cross-encoder on labelled + pseudo-labelled pairs. Only course files are used. Local validation: Recall@1 37.68% → 38.45%, Recall@10 unchanged (70.73% → 70.75%), so step 4b remains the selected pipeline. The script writes `outputs/pseudo/submission/2024320020_final.csv`. Details: [docs/pseudo_labeling.md](docs/pseudo_labeling.md).
 
+## Category labels as auxiliary information
+
+`bash run_category.sh 2024320020` (GPU for one short encoding step, after `run_rerank.sh`) trains a label-GCN category classifier multi-task on queries and products (training-query categories and the official taxonomy only) and adds a category-agreement score to the reranker, with its weight chosen on the tuning slice. The classifier reaches 79.5% top-5 accuracy over 500 categories, but the score does not improve Recall@10 (β = 0 is selected), because the candidates already share the query's category. The script writes `outputs/category/submission/2024320020_final.csv`. Details: [docs/category_auxiliary.md](docs/category_auxiliary.md).
+
 ## Compare BM25 weighting and review fusion
 
 ```bash

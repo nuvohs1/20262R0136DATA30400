@@ -66,6 +66,6 @@ Observations:
 - This is expected from the pseudo-labels that pass a 0.9 precision threshold. They are the queries the ranker already gets right with a clear margin, so they add few new correct products to the top 10. They mainly sharpen the score of products the model already ranks highly.
 - Lowering the threshold would add more queries at lower precision (for example 0.76 precision at 24% coverage). Testing that would need another tuning loop of GPU runs, and it was not pursued.
 
-**Test file:** `outputs/pseudo/submission/2024320020_final.csv` (valid; the candidates are identical to step 4b). Compared with the step-4b file, the top-1 product differs for 3,352 test queries, and the top-10 set differs for 16,742. Kaggle Recall@10: pending.
+**Test file:** `outputs/pseudo/submission/2024320020_final.csv` (valid; the candidates are identical to step 4b). Compared with the step-4b file, the top-1 product differs for 3,352 test queries, and the top-10 set differs for 16,742. Kaggle Recall@10: **0.76936** (step 4b: 0.76916). The +0.0002 difference is a handful of queries, well inside the sampling noise of the public leaderboard (about ±0.5 points).
 
 **Selection.** Validation Recall@10 is equal to step 4b, so self-training is not adopted as the final method on local evidence. The step-4b reranker (Kaggle 0.76916) remains the selected pipeline, because it is simpler at equal Recall@10. A Kaggle score for this file is recorded for completeness and does not change the selection.
