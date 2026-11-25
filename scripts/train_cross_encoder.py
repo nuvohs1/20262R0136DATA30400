@@ -15,6 +15,12 @@ Protocol (same as the bi-encoder):
       is kept. Validation queries are never used.
   --negatives outputs/ltr/negatives_full.json --stop-after-epoch K
       model B: all 20,000 training queries, same schedule, stops at model A's epoch.
+
+Self-training (scripts/make_pseudo_labels.py): --pseudo outputs/pseudo/pseudo_dev.json adds
+pseudo-labelled tuning-slice and validation queries to model A's data (reviews only, labels
+never read); --pseudo outputs/pseudo/pseudo_full.json adds pseudo-labelled test queries to
+model B's data. Training restarts from the base checkpoint; pseudo queries are mixed with the
+labelled ones and use their own hard negatives (stage-1 candidates).
 """
 
 import os
@@ -40,7 +46,8 @@ from cross_encoder_common import PairEncoder, score_candidates
 from encode_dense import set_seeds
 from review_retrieval.common import read_json, sha256
 from review_retrieval.dense_text import product_passage
-from review_retrieval.model_policy import ALLOWED_CHECKPOINTS, DEFAULT_CHECKPOINT, PROVENANCE_FILE, check_model
+from review_retrieval.model_policy import (ALLOWED_CHECKPOINTS, DEFAULT_CHECKPOINT, PROVENANCE_FILE,
+                                           PSEUDO_FINE_TUNING_DATA, check_model)
 from review_retrieval.rerank import select_weight
 
 
@@ -49,6 +56,7 @@ def main():
     parser.add_argument("--data-dir", type=Path, default=ROOT / "project_release")
     parser.add_argument("--negatives", type=Path, required=True)
     parser.add_argument("--tune-candidates", type=Path, help="Tuning-slice candidates (model A only)")
+    parser.add_argument("--pseudo", type=Path, help="Pseudo-labels from scripts/make_pseudo_labels.py (self-training)")
     parser.add_argument("--model", default=DEFAULT_CHECKPOINT)
     parser.add_argument("--revision", default=ALLOWED_CHECKPOINTS[DEFAULT_CHECKPOINT]["revision"])
     parser.add_argument("--output-dir", type=Path, required=True)
@@ -84,15 +92,38 @@ def main():
     if tune is not None and (set(tune["query_ids"]) & set(train_ids) or tune["split"] != "tune"):
         raise ValueError("Tuning candidates must be the tuning slice, disjoint from the training queries")
 
+    pseudo = read_json(args.pseudo) if args.pseudo else None
+    pseudo_records = {}
+    if pseudo is not None:
+        if pseudo["set"] != f"pseudo-{record['set']}" or pseudo["train_gold_sha256"] != train_sha:
+            raise ValueError("Pseudo-labels must match the negatives set (pseudo-dev with dev, pseudo-full with full)")
+        if record["set"] == "dev":
+            # Reviews of tuning-slice / validation queries only; their item_id and category_path are dropped.
+            source = {q: {"query_id": q, "reviews": train[q]["reviews"]} for q in held_out}
+        else:
+            test = read_json(args.data_dir / "test_queries.json")
+            if sha256(args.data_dir / "test_queries.json") != pseudo["test_queries_sha256"]:
+                raise ValueError("Pseudo-labels were made for a different test_queries.json")
+            source = {q["query_id"]: q for q in test}
+        pseudo_records = {p["query_id"]: {"query_id": p["query_id"], "reviews": source[p["query_id"]]["reviews"],
+                                          "item_id": p["item_id"]} for p in pseudo["queries"]}
+        if set(pseudo_records) & set(train_ids):
+            raise ValueError("Pseudo-labelled queries overlap the labelled training queries")
+        for p in pseudo["queries"]:
+            record["negatives"][p["query_id"]] = p["negatives"]
+
     eligibility = check_model(args.model, args.revision)
     provenance = {
         "base_model": eligibility["base_model"], "base_revision": eligibility["base_revision"],
-        "fine_tuning_data": "course train_gold.json only", "train_gold_sha256": train_sha,
+        "fine_tuning_data": PSEUDO_FINE_TUNING_DATA if pseudo else "course train_gold.json only", "train_gold_sha256": train_sha,
         "catalog_sha256": sha256(args.data_dir / "catalog.json"), "negatives_sha256": sha256(args.negatives),
         "negatives_set": record["set"], "train_queries": len(train_ids),
         "objective": "cross-encoder, listwise softmax cross-entropy over (1 positive + BM25 negatives) groups",
         "max_length": args.max_length, "review_tokens": args.review_tokens,
     }
+    if pseudo is not None:
+        provenance.update({"pseudo_labels_sha256": sha256(args.pseudo), "pseudo_set": pseudo["set"],
+                           "pseudo_queries": len(pseudo_records), "pseudo_threshold": pseudo["threshold"]})
 
     catalog = sorted(read_json(args.data_dir / "catalog.json"), key=lambda p: p["item_id"])
     item_ids = [p["item_id"] for p in catalog]
@@ -102,8 +133,11 @@ def main():
     model.gradient_checkpointing_enable()
     print("Tokenizing catalog and reviews...", flush=True)
     encoder = PairEncoder(tokenizer, [product_passage(p) for p in catalog], args.max_length, args.review_tokens)
+    labelled_ids = list(train_ids)
+    train_ids = labelled_ids + sorted(pseudo_records)
+    examples = {**{q: train[q] for q in labelled_ids}, **pseudo_records}
     query_index = {q: n for n, q in enumerate(train_ids)}
-    query_ids = encoder.queries([train[q] for q in train_ids])
+    query_ids = encoder.queries([examples[q] for q in train_ids])
     if tune is not None:
         tune_queries = encoder.queries([train[q] for q in tune["query_ids"]])
         tune_items = [[position[i] for i in row] for row in tune["items"]]
@@ -141,7 +175,7 @@ def main():
             batch_q = order[step * args.batch_queries:(step + 1) * args.batch_queries]
             pairs = []
             for q in batch_q:
-                group = [train[q]["item_id"]] + rng.sample(record["negatives"][q][:args.negative_pool], args.group_size - 1)
+                group = [examples[q]["item_id"]] + rng.sample(record["negatives"][q][:args.negative_pool], args.group_size - 1)
                 pairs.extend((query_index[q], position[item]) for item in group)
             inputs = encoder.batch(pairs, query_ids, device)
             with torch.autocast(device_type="cuda", dtype=torch.float16):

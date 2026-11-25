@@ -7,7 +7,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from review_retrieval.model_policy import (ALLOWED_CHECKPOINTS, DEFAULT_CHECKPOINT, PROVENANCE_FILE,
-                                           IneligibleModelError, check_embedding_manifest, check_model)
+                                           PSEUDO_FINE_TUNING_DATA, IneligibleModelError, check_embedding_manifest, check_model)
 
 REVISION = ALLOWED_CHECKPOINTS[DEFAULT_CHECKPOINT]["revision"]
 
@@ -39,6 +39,21 @@ class ModelPolicyTest(unittest.TestCase):
             with self.assertRaises(IneligibleModelError):
                 check_model(tmp, train_gold_sha256="different")
             (Path(tmp) / PROVENANCE_FILE).write_text(json.dumps({**provenance, "base_model": "intfloat/e5-base-v2"}),
+                                                     encoding="utf-8")
+            with self.assertRaises(IneligibleModelError):
+                check_model(tmp)
+
+    def test_self_trained_checkpoint(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            provenance = {"base_model": DEFAULT_CHECKPOINT, "base_revision": REVISION,
+                          "fine_tuning_data": PSEUDO_FINE_TUNING_DATA, "train_gold_sha256": "abc"}
+            (Path(tmp) / PROVENANCE_FILE).write_text(json.dumps(provenance), encoding="utf-8")
+            with self.assertRaises(IneligibleModelError):  # no pseudo-label fingerprint
+                check_model(tmp)
+            provenance.update(pseudo_labels_sha256="def", pseudo_set="pseudo-full")
+            (Path(tmp) / PROVENANCE_FILE).write_text(json.dumps(provenance), encoding="utf-8")
+            self.assertEqual(check_model(tmp, train_gold_sha256="abc")["kind"], "fine-tuned checkpoint")
+            (Path(tmp) / PROVENANCE_FILE).write_text(json.dumps({**provenance, "fine_tuning_data": "external"}),
                                                      encoding="utf-8")
             with self.assertRaises(IneligibleModelError):
                 check_model(tmp)

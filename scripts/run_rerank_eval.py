@@ -6,6 +6,9 @@ Final:   (1 - w) * z(stage 1) + w * z(cross-encoder) within each query's K candi
 
 w is selected on the tuning slice (model A scores); validation is evaluated once with that w;
 test uses model B scores and the same w.
+
+Self-training run (run_pseudo.sh): --dev-model outputs/pseudo/ce-dev --full-model outputs/pseudo/ce-full
+--output-dir outputs/pseudo/submission --pseudo-dev outputs/pseudo/pseudo_dev_summary.json
 """
 
 import argparse
@@ -35,6 +38,9 @@ def main():
     parser.add_argument("--dev-model", type=Path, default=ROOT / "outputs/rerank/ce-dev")
     parser.add_argument("--full-model", type=Path, default=ROOT / "outputs/rerank/ce-full")
     parser.add_argument("--student-id", default="2024320020")
+    parser.add_argument("--output-dir", type=Path, help="Default: <candidates-dir>/submission")
+    parser.add_argument("--method", default="multi-stage: BM25 v2 + LTR BERT candidates -> BERT cross-encoder reranking")
+    parser.add_argument("--pseudo-dev", type=Path, help="Pseudo-label summary of the dev stage (self-training run)")
     args = parser.parse_args()
     if not args.student_id.isalnum():
         parser.error("--student-id must be alphanumeric")
@@ -57,7 +63,7 @@ def main():
         print(f"  validation {name}: R@1 {results[name]['recall@1']:.4f} R@10 {results[name]['recall@10']:.4f} "
               f"NDCG@10 {results[name]['ndcg@10']:.4f}", flush=True)
     catalog_ids = sorted(p["item_id"] for p in read_json(args.data_dir / "catalog.json"))
-    out_dir = args.candidates_dir / "submission"
+    out_dir = args.output_dir or args.candidates_dir / "submission"
     write_submission(out_dir / "validation_reranked.csv", valid["query_ids"], ranked_lists(valid, valid_scores, weight), catalog_ids)
 
     # 3) Test.
@@ -73,8 +79,18 @@ def main():
         consistent = all(previous[q] == row[:10] for q, row in zip(test["query_ids"], test["items"]))
         print(f"Test candidates' top 10 equal the hybrid submission: {consistent}", flush=True)
     print(f"Wrote {path}", flush=True)
+    pseudo_report = None
+    if args.pseudo_dev:
+        # Reported after the final evaluation only; no choice depends on it.
+        labels = read_json(args.pseudo_dev.with_name("pseudo_dev.json"))["queries"]
+        valid_set = set(valid["query_ids"])
+        hits = [p["item_id"] == gold[p["query_id"]] for p in labels if p["query_id"] in valid_set]
+        pseudo_report = {**read_json(args.pseudo_dev), "validation_pseudo_label_precision":
+                         round(float(np.mean(hits)), 5) if hits else None, "validation_pseudo_labels": len(hits)}
+        print(f"Validation pseudo-label precision: {pseudo_report['validation_pseudo_label_precision']} "
+              f"({len(hits)} queries)", flush=True)
     write_json(out_dir / "metrics.json", {
-        "method": "multi-stage: BM25 v2 + LTR BERT candidates -> BERT cross-encoder reranking",
+        "method": args.method, "pseudo_labels": pseudo_report,
         "evaluation": "local development validation (4,000 queries, full catalog); not a Kaggle score",
         "candidate_recall": {"tune": tune["candidate_recall"], "validation": valid["candidate_recall"]},
         "first_stage": {"tune": tune["first_stage"], "validation": valid["first_stage"], "test": test["first_stage"]},

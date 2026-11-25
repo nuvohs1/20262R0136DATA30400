@@ -36,6 +36,10 @@ ALLOWED_CHECKPOINTS = {
 ALIASES = {"bert-base-uncased": "google-bert/bert-base-uncased"}
 DEFAULT_CHECKPOINT = "google-bert/bert-base-uncased"
 PROVENANCE_FILE = "provenance.json"
+COURSE_FINE_TUNING_DATA = "course train_gold.json only"
+# Self-training: course training pairs plus pseudo-labels the course pipeline assigned to unlabeled
+# course queries (held-out train_gold.json reviews or test_queries.json); no external data.
+PSEUDO_FINE_TUNING_DATA = "course train_gold.json + pseudo-labelled course queries (self-training)"
 
 
 class IneligibleModelError(ValueError):
@@ -67,8 +71,12 @@ def check_local_checkpoint(path, train_gold_sha256=None):
         raise IneligibleModelError(f"{path} has no {PROVENANCE_FILE}; its origin cannot be verified")
     provenance = json.loads(file.read_text(encoding="utf-8"))
     check_hub_checkpoint(provenance["base_model"], provenance["base_revision"])
-    if provenance.get("fine_tuning_data") != "course train_gold.json only":
-        raise IneligibleModelError(f"{path}: fine-tuning data is not restricted to the course training file")
+    data = provenance.get("fine_tuning_data")
+    if data == PSEUDO_FINE_TUNING_DATA:
+        if not provenance.get("pseudo_labels_sha256") or provenance.get("pseudo_set") not in ("pseudo-dev", "pseudo-full"):
+            raise IneligibleModelError(f"{path}: self-trained checkpoint without a pseudo-label fingerprint")
+    elif data != COURSE_FINE_TUNING_DATA:
+        raise IneligibleModelError(f"{path}: fine-tuning data is not restricted to the course data files")
     if train_gold_sha256 and provenance.get("train_gold_sha256") != train_gold_sha256:
         raise IneligibleModelError(f"{path}: fine-tuned on a different train_gold.json")
     return provenance
