@@ -118,7 +118,7 @@ Protocols and results: [docs/dense_retrieval.md](docs/dense_retrieval.md), [docs
 
 ## Approximate nearest-neighbour search (IVF)
 
-`python scripts/run_ann.py` (CPU) builds an IVF index (spherical k-means, 256 cells) over the fine-tuned BERT product embeddings and measures the speed/accuracy trade-off against exact dense search for several `nprobe` values, with `nprobe` selected on the tuning slice. Details: [docs/ann_ivf.md](docs/ann_ivf.md).
+`python scripts/run_ann.py` (CPU) builds an IVF index (spherical k-means, 256 cells) over the fine-tuned BERT product embeddings and measures the speed/accuracy trade-off against exact dense search for several `nprobe` values, with `nprobe` selected on the tuning slice. With nprobe 8, it scores 3.2% of the catalog, runs 6.0× faster, and keeps 96.3% of the exact top 10. Validation Recall@10 is 0.4400, against 0.4567 for exact search. The submission keeps exact search. Details: [docs/ann_ivf.md](docs/ann_ivf.md).
 
 ## Compare BM25 weighting and review fusion
 

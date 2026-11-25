@@ -1,0 +1,190 @@
+{
+  "method": "IVF (spherical k-means) approximate inner-product search over LTR BERT product embeddings",
+  "evaluation": "local; tuning slice selects nprobe, validation reported once; dense retrieval only",
+  "embeddings": "outputs/dense/bert-ltr-dev",
+  "nlist": 256,
+  "iterations": 20,
+  "kmeans_mean_cosine_by_iteration": [
+    0.5441945654296875,
+    0.6642322412109375,
+    0.6835685217285157,
+    0.6914381396484375,
+    0.6954980187988281,
+    0.6979302172851563,
+    0.6996544165039063,
+    0.7013156518554687,
+    0.702376318359375,
+    0.7031084326171875,
+    0.7039088989257812,
+    0.7045890576171875,
+    0.70508986328125,
+    0.7055799230957032,
+    0.7059713745117188,
+    0.7062511828613282,
+    0.7064743444824219,
+    0.7066946350097656,
+    0.706905693359375,
+    0.707060869140625,
+    0.707182158203125
+  ],
+  "list_sizes": {
+    "min": 49,
+    "median": 177.0,
+    "max": 723
+  },
+  "build_seconds": 9.436615206999704,
+  "target_ann_recall_at_10": 0.95,
+  "selected_nprobe": 8,
+  "results": {
+    "tune": {
+      "exact": {
+        "recall@10": 0.44475,
+        "recall@50": 0.72275,
+        "products_scored_per_query": 50000.0,
+        "ms_per_query": 3.8094440697499294
+      },
+      "nprobe_1": {
+        "recall@10": 0.32925,
+        "recall@50": 0.5285,
+        "products_scored_per_query": 236.666,
+        "ms_per_query": 0.14891933124999923,
+        "ann_recall@10": 0.7097,
+        "speedup_vs_exact": 25.58058807929242
+      },
+      "nprobe_2": {
+        "recall@10": 0.37975,
+        "recall@50": 0.61075,
+        "products_scored_per_query": 443.41575,
+        "ms_per_query": 0.23223458649999884,
+        "ann_recall@10": 0.8421750000000001,
+        "speedup_vs_exact": 16.40343123374497
+      },
+      "nprobe_4": {
+        "recall@10": 0.4085,
+        "recall@50": 0.66375,
+        "products_scored_per_query": 836.3005,
+        "ms_per_query": 0.4116284637499348,
+        "ann_recall@10": 0.9180250000000001,
+        "speedup_vs_exact": 9.254569120526552
+      },
+      "nprobe_8": {
+        "recall@10": 0.4305,
+        "recall@50": 0.69675,
+        "products_scored_per_query": 1606.00275,
+        "ms_per_query": 0.705024275000028,
+        "ann_recall@10": 0.9599,
+        "speedup_vs_exact": 5.4032807164686325
+      },
+      "nprobe_16": {
+        "recall@10": 0.441,
+        "recall@50": 0.71375,
+        "products_scored_per_query": 3118.48175,
+        "ms_per_query": 1.305110579500024,
+        "ann_recall@10": 0.984025,
+        "speedup_vs_exact": 2.91886689877979
+      },
+      "nprobe_32": {
+        "recall@10": 0.44375,
+        "recall@50": 0.71925,
+        "products_scored_per_query": 6133.7045,
+        "ms_per_query": 2.544846737750049,
+        "ann_recall@10": 0.99435,
+        "speedup_vs_exact": 1.496924751200513
+      },
+      "nprobe_64": {
+        "recall@10": 0.445,
+        "recall@50": 0.72225,
+        "products_scored_per_query": 12193.999,
+        "ms_per_query": 5.415741385000047,
+        "ann_recall@10": 0.998725,
+        "speedup_vs_exact": 0.7034021381266338
+      },
+      "nprobe_128": {
+        "recall@10": 0.44475,
+        "recall@50": 0.72225,
+        "products_scored_per_query": 24528.191,
+        "ms_per_query": 18.518369468499944,
+        "ann_recall@10": 0.9998250000000001,
+        "speedup_vs_exact": 0.205711635477943
+      }
+    },
+    "validation": {
+      "exact": {
+        "recall@10": 0.45675,
+        "recall@50": 0.73125,
+        "products_scored_per_query": 50000.0,
+        "ms_per_query": 4.2869943802500075
+      },
+      "nprobe_1": {
+        "recall@10": 0.32025,
+        "recall@50": 0.52825,
+        "products_scored_per_query": 234.85775,
+        "ms_per_query": 0.15349667450004745,
+        "ann_recall@10": 0.70875,
+        "speedup_vs_exact": 27.928907217131158
+      },
+      "nprobe_2": {
+        "recall@10": 0.38325,
+        "recall@50": 0.625,
+        "products_scored_per_query": 444.31725,
+        "ms_per_query": 0.23797318449999239,
+        "ann_recall@10": 0.844125,
+        "speedup_vs_exact": 18.01461113888714
+      },
+      "nprobe_4": {
+        "recall@10": 0.41975,
+        "recall@50": 0.67825,
+        "products_scored_per_query": 836.56925,
+        "ms_per_query": 0.3959158612499323,
+        "ann_recall@10": 0.9197750000000001,
+        "speedup_vs_exact": 10.828044036214376
+      },
+      "nprobe_8": {
+        "recall@10": 0.44,
+        "recall@50": 0.709,
+        "products_scored_per_query": 1603.28025,
+        "ms_per_query": 0.7106785690000379,
+        "ann_recall@10": 0.963275,
+        "speedup_vs_exact": 6.032255040815476
+      },
+      "nprobe_16": {
+        "recall@10": 0.45075,
+        "recall@50": 0.721,
+        "products_scored_per_query": 3120.01725,
+        "ms_per_query": 1.3168982665000613,
+        "ann_recall@10": 0.9840999999999999,
+        "speedup_vs_exact": 3.2553724834368656
+      },
+      "nprobe_32": {
+        "recall@10": 0.45475,
+        "recall@50": 0.7285,
+        "products_scored_per_query": 6126.1015,
+        "ms_per_query": 2.559049022749946,
+        "ann_recall@10": 0.9943,
+        "speedup_vs_exact": 1.6752294864766666
+      },
+      "nprobe_64": {
+        "recall@10": 0.456,
+        "recall@50": 0.7305,
+        "products_scored_per_query": 12191.037,
+        "ms_per_query": 5.393475990250067,
+        "ann_recall@10": 0.99875,
+        "speedup_vs_exact": 0.7948481439427418
+      },
+      "nprobe_128": {
+        "recall@10": 0.45675,
+        "recall@50": 0.7315,
+        "products_scored_per_query": 24536.6595,
+        "ms_per_query": 18.528437829000037,
+        "ann_recall@10": 0.99995,
+        "speedup_vs_exact": 0.2313737628511865
+      }
+    }
+  },
+  "environment": {
+    "python": "3.10.20",
+    "numpy": "2.2.6",
+    "cpus": 8,
+    "note": "timings are single-process wall-clock and vary between machines"
+  }
+}
