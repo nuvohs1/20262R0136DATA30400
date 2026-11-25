@@ -59,7 +59,7 @@ The report must explain the final matching method and design rationale; include 
 6. Dense baseline validation and Kaggle prediction (complete locally: zero-shot BERT 1.70% local Recall@10; hybrid selects α = 0; Kaggle 0.02306).
 7. Learning-to-rank training with BM25 hard negatives (complete locally on AWS L4: dense 45.67%, BM25 v2 + LTR BERT hybrid 66.73% local Recall@10; Kaggle dense 0.56058, hybrid 0.72333).
 8. Multi-stage ranking with a BERT cross-encoder reranker (complete on AWS L4: top-50 candidates, fused w = 0.5; local Recall@10 66.73% → 70.73%, NDCG@10 0.4883 → 0.5344; Kaggle 0.76916 = current best).
-9. Self-training with pseudo-labels for the cross-encoder (implemented: docs/pseudo_labeling.md; AWS run pending).
+9. Self-training with pseudo-labels for the cross-encoder (complete on AWS L4: threshold margin 1.65 at 0.9 tuning precision, validation pseudo-label precision 0.915; local Recall@10 70.73% → 70.75% (no change), Recall@1 37.68% → 38.45%; not adopted).
 10. Further class techniques, each with course data and the allowed checkpoint only: ANN index (IVF) for dense search; category labels as auxiliary information (multi-task learning); Precision@N, Recall@N, NDCG@N evaluation (implemented: docs/evaluation_metrics.md).
 11. Final selection, reproducibility runner, and submission checks.
 12. Case studies, report, and final reproduction documentation.

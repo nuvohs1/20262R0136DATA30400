@@ -34,4 +34,38 @@ The final file is `outputs/pseudo/submission/2024320020_final.csv`. Metrics are 
 
 ## Results
 
-Pending the AWS run.
+Run on the course AWS notebook (NVIDIA L4). Full record: `artifacts/experiments/pseudo_bert.json`.
+
+**Pseudo-labels.** On the tuning slice, precision rises steadily with the margin (0.36 for all queries, 0.76 at margin 1.0, 0.90 at 1.65, about 0.98 above 2.6). The selected threshold is **1.65**: tuning-slice precision 0.901 at 13.4% coverage.
+
+| Pool | Queries | Pseudo-labelled | Precision |
+| --- | --- | --- | --- |
+| Tuning slice | 4,000 | 537 | 0.901 (used to pick the threshold) |
+| Validation | 4,000 | 542 | **0.915** (checked once, after the final evaluation) |
+| Test | 19,858 | 2,762 (13.9%) | unknown |
+
+The threshold transfers: validation precision (0.915) matches the 0.9 target, and test coverage (13.9%) matches the tuning slice (13.4%).
+
+**Training.** Self-trained model A: 12,000 + 1,079 queries, 1,634 steps per epoch, about 36 minutes per epoch. Its tuning-slice Recall@10 at the best w was 0.6945 (epoch 1) and 0.6950 (epoch 2), so epoch 2 and w = 0.5 are selected, the same as without self-training. Self-trained model B: 20,000 + 2,762 queries, 2 epochs, about 62 minutes per epoch.
+
+**Validation** (4,000 queries, evaluated once):
+
+| Ranking | R@1 | R@10 | NDCG@10 | MRR@10 |
+| --- | --- | --- | --- | --- |
+| Stage 1 only | 0.3295 | 0.6673 | 0.4883 | 0.4322 |
+| Cross-encoder only, step 4b | 0.3018 | 0.6380 | 0.4592 | 0.4033 |
+| Cross-encoder only, self-trained | 0.3258 | 0.6413 | 0.4728 | 0.4203 |
+| Fused, step 4b | 0.3768 | 0.7073 | 0.5344 | 0.4801 |
+| **Fused, self-trained** | **0.3845** | **0.7075** | **0.5383** | **0.4852** |
+
+Paired comparison of the two fused rankings on the same validation queries: Recall@10 has 75 wins and 74 losses (no change). Recall@1 has 117 wins and 86 losses (+0.8 points; sign test p ≈ 0.03).
+
+Observations:
+
+- Self-training improves the order at the top of the list. The cross-encoder alone gains 2.4 points of Recall@1, and the fused ranking gains 0.8 points of Recall@1 and 0.4 points of NDCG@10. It does not change Recall@10, the competition metric.
+- This is expected from the pseudo-labels that pass a 0.9 precision threshold. They are the queries the ranker already gets right with a clear margin, so they add few new correct products to the top 10. They mainly sharpen the score of products the model already ranks highly.
+- Lowering the threshold would add more queries at lower precision (for example 0.76 precision at 24% coverage). Testing that would need another tuning loop of GPU runs, and it was not pursued.
+
+**Test file:** `outputs/pseudo/submission/2024320020_final.csv` (valid; the candidates are identical to step 4b). Compared with the step-4b file, the top-1 product differs for 3,352 test queries, and the top-10 set differs for 16,742. Kaggle Recall@10: pending.
+
+**Selection.** Validation Recall@10 is equal to step 4b, so self-training is not adopted as the final method on local evidence. The step-4b reranker (Kaggle 0.76916) remains the selected pipeline, because it is simpler at equal Recall@10. A Kaggle score for this file is recorded for completeness and does not change the selection.

@@ -23,6 +23,7 @@ RUNS = {
     "Dense: LTR fine-tuned BERT": "outputs/dense_eval/bert-ltr/validation_dense_mean.csv",
     "Hybrid: BM25 v2 + LTR BERT (alpha 3)": "outputs/dense_eval/bert-ltr/validation_hybrid_3.0.csv",
     "Multi-stage: hybrid top 50 + BERT cross-encoder (w 0.5)": "outputs/rerank/submission/validation_reranked.csv",
+    "Multi-stage + self-trained cross-encoder (pseudo-labels)": "outputs/pseudo/submission/validation_reranked.csv",
 }
 
 

@@ -1,0 +1,632 @@
+{
+  "method": "multi-stage with a self-trained cross-encoder (pseudo-labels on unlabeled course queries)",
+  "pseudo_labels": {
+    "set": "pseudo-dev",
+    "weight": 0.5,
+    "threshold": 1.65,
+    "min_precision": 0.9,
+    "negative_pool": 30,
+    "train_gold_sha256": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+    "pool": {
+      "tune": 4000,
+      "validation": 4000
+    },
+    "tuning_slice_curve": {
+      "0.0": {
+        "coverage": 1.0,
+        "precision": 0.35575
+      },
+      "0.05": {
+        "coverage": 0.9105,
+        "precision": 0.37974
+      },
+      "0.1": {
+        "coverage": 0.836,
+        "precision": 0.39803
+      },
+      "0.15": {
+        "coverage": 0.7615,
+        "precision": 0.42186
+      },
+      "0.2": {
+        "coverage": 0.69675,
+        "precision": 0.44421
+      },
+      "0.25": {
+        "coverage": 0.6435,
+        "precision": 0.46465
+      },
+      "0.3": {
+        "coverage": 0.59375,
+        "precision": 0.48421
+      },
+      "0.35": {
+        "coverage": 0.55,
+        "precision": 0.50773
+      },
+      "0.4": {
+        "coverage": 0.51225,
+        "precision": 0.52806
+      },
+      "0.45": {
+        "coverage": 0.4765,
+        "precision": 0.54879
+      },
+      "0.5": {
+        "coverage": 0.44425,
+        "precision": 0.57344
+      },
+      "0.55": {
+        "coverage": 0.419,
+        "precision": 0.59069
+      },
+      "0.6": {
+        "coverage": 0.38975,
+        "precision": 0.61386
+      },
+      "0.65": {
+        "coverage": 0.363,
+        "precision": 0.64187
+      },
+      "0.7": {
+        "coverage": 0.34,
+        "precision": 0.65735
+      },
+      "0.75": {
+        "coverage": 0.31775,
+        "precision": 0.67899
+      },
+      "0.8": {
+        "coverage": 0.2955,
+        "precision": 0.70305
+      },
+      "0.85": {
+        "coverage": 0.27925,
+        "precision": 0.72695
+      },
+      "0.9": {
+        "coverage": 0.265,
+        "precision": 0.73868
+      },
+      "0.95": {
+        "coverage": 0.2515,
+        "precision": 0.75149
+      },
+      "1.0": {
+        "coverage": 0.24075,
+        "precision": 0.76012
+      },
+      "1.05": {
+        "coverage": 0.22675,
+        "precision": 0.77508
+      },
+      "1.1": {
+        "coverage": 0.21325,
+        "precision": 0.79132
+      },
+      "1.15": {
+        "coverage": 0.20225,
+        "precision": 0.80222
+      },
+      "1.2": {
+        "coverage": 0.194,
+        "precision": 0.81572
+      },
+      "1.25": {
+        "coverage": 0.18325,
+        "precision": 0.83629
+      },
+      "1.3": {
+        "coverage": 0.1765,
+        "precision": 0.84986
+      },
+      "1.35": {
+        "coverage": 0.17,
+        "precision": 0.85882
+      },
+      "1.4": {
+        "coverage": 0.164,
+        "precision": 0.87348
+      },
+      "1.45": {
+        "coverage": 0.15875,
+        "precision": 0.88504
+      },
+      "1.5": {
+        "coverage": 0.15225,
+        "precision": 0.89163
+      },
+      "1.55": {
+        "coverage": 0.1465,
+        "precision": 0.8942
+      },
+      "1.6": {
+        "coverage": 0.139,
+        "precision": 0.89568
+      },
+      "1.65": {
+        "coverage": 0.13425,
+        "precision": 0.9013
+      },
+      "1.7": {
+        "coverage": 0.128,
+        "precision": 0.9082
+      },
+      "1.75": {
+        "coverage": 0.1225,
+        "precision": 0.91224
+      },
+      "1.8": {
+        "coverage": 0.118,
+        "precision": 0.92161
+      },
+      "1.85": {
+        "coverage": 0.11425,
+        "precision": 0.92341
+      },
+      "1.9": {
+        "coverage": 0.1085,
+        "precision": 0.93548
+      },
+      "1.95": {
+        "coverage": 0.104,
+        "precision": 0.9351
+      },
+      "2.0": {
+        "coverage": 0.09925,
+        "precision": 0.93451
+      },
+      "2.05": {
+        "coverage": 0.09475,
+        "precision": 0.93404
+      },
+      "2.1": {
+        "coverage": 0.09075,
+        "precision": 0.93664
+      },
+      "2.15": {
+        "coverage": 0.08725,
+        "precision": 0.93696
+      },
+      "2.2": {
+        "coverage": 0.0835,
+        "precision": 0.94611
+      },
+      "2.25": {
+        "coverage": 0.081,
+        "precision": 0.9537
+      },
+      "2.3": {
+        "coverage": 0.078,
+        "precision": 0.95833
+      },
+      "2.35": {
+        "coverage": 0.0745,
+        "precision": 0.95973
+      },
+      "2.4": {
+        "coverage": 0.07,
+        "precision": 0.97143
+      },
+      "2.45": {
+        "coverage": 0.0675,
+        "precision": 0.97778
+      },
+      "2.5": {
+        "coverage": 0.0645,
+        "precision": 0.97674
+      },
+      "2.55": {
+        "coverage": 0.06075,
+        "precision": 0.97942
+      },
+      "2.6": {
+        "coverage": 0.0585,
+        "precision": 0.98291
+      },
+      "2.65": {
+        "coverage": 0.0555,
+        "precision": 0.98198
+      },
+      "2.7": {
+        "coverage": 0.053,
+        "precision": 0.98113
+      },
+      "2.75": {
+        "coverage": 0.05025,
+        "precision": 0.98507
+      },
+      "2.8": {
+        "coverage": 0.049,
+        "precision": 0.98469
+      },
+      "2.85": {
+        "coverage": 0.04575,
+        "precision": 0.98907
+      },
+      "2.9": {
+        "coverage": 0.04375,
+        "precision": 0.98857
+      },
+      "2.95": {
+        "coverage": 0.042,
+        "precision": 0.9881
+      },
+      "3.0": {
+        "coverage": 0.041,
+        "precision": 0.9878
+      },
+      "3.05": {
+        "coverage": 0.0395,
+        "precision": 0.98734
+      },
+      "3.1": {
+        "coverage": 0.0375,
+        "precision": 0.98667
+      },
+      "3.15": {
+        "coverage": 0.037,
+        "precision": 0.98649
+      },
+      "3.2": {
+        "coverage": 0.03575,
+        "precision": 0.98601
+      },
+      "3.25": {
+        "coverage": 0.035,
+        "precision": 0.98571
+      },
+      "3.3": {
+        "coverage": 0.0325,
+        "precision": 0.98462
+      },
+      "3.35": {
+        "coverage": 0.031,
+        "precision": 0.98387
+      },
+      "3.4": {
+        "coverage": 0.0295,
+        "precision": 0.98305
+      },
+      "3.45": {
+        "coverage": 0.0285,
+        "precision": 0.98246
+      },
+      "3.5": {
+        "coverage": 0.02625,
+        "precision": 0.98095
+      },
+      "3.55": {
+        "coverage": 0.0245,
+        "precision": 0.97959
+      },
+      "3.6": {
+        "coverage": 0.023,
+        "precision": 0.97826
+      },
+      "3.65": {
+        "coverage": 0.02175,
+        "precision": 0.97701
+      },
+      "3.7": {
+        "coverage": 0.02075,
+        "precision": 0.9759
+      },
+      "3.75": {
+        "coverage": 0.01975,
+        "precision": 0.97468
+      },
+      "3.8": {
+        "coverage": 0.0185,
+        "precision": 0.97297
+      },
+      "3.85": {
+        "coverage": 0.0175,
+        "precision": 0.97143
+      },
+      "3.9": {
+        "coverage": 0.01575,
+        "precision": 0.96825
+      },
+      "3.95": {
+        "coverage": 0.01525,
+        "precision": 0.96721
+      },
+      "4.0": {
+        "coverage": 0.01425,
+        "precision": 0.96491
+      }
+    },
+    "tuning_slice_precision": 0.9013,
+    "selected": {
+      "tune": 537,
+      "validation": 542
+    },
+    "scored_by": "cross-encoder model A (outputs/rerank/ce-dev)",
+    "query_source": "train_gold.json reviews only",
+    "validation_pseudo_label_precision": 0.91513,
+    "validation_pseudo_labels": 542
+  },
+  "evaluation": "local development validation (4,000 queries, full catalog); not a Kaggle score",
+  "candidate_recall": {
+    "tune": {
+      "recall_at_10": 0.65575,
+      "recall_at_20": 0.756,
+      "recall_at_30": 0.81425,
+      "recall_at_50": 0.8755
+    },
+    "validation": {
+      "recall_at_10": 0.66725,
+      "recall_at_20": 0.76675,
+      "recall_at_30": 0.81575,
+      "recall_at_50": 0.879
+    }
+  },
+  "first_stage": {
+    "tune": {
+      "bm25": "v2 metadata only",
+      "rsj_queries": 12000,
+      "dense": "bert-ltr-dev",
+      "alpha": 3.0,
+      "depth": 50
+    },
+    "validation": {
+      "bm25": "v2 metadata only",
+      "rsj_queries": 16000,
+      "dense": "bert-ltr-dev",
+      "alpha": 3.0,
+      "depth": 50
+    },
+    "test": {
+      "bm25": "v2 + labelled-review expansion",
+      "rsj_queries": 20000,
+      "dense": "bert-ltr-full",
+      "alpha": 3.0,
+      "depth": 50
+    }
+  },
+  "weight_grid": [
+    0.0,
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1.0
+  ],
+  "tuning_slice_recall_at_10_by_weight": {
+    "0.0": 0.65575,
+    "0.1": 0.66425,
+    "0.2": 0.67625,
+    "0.3": 0.68575,
+    "0.4": 0.69225,
+    "0.5": 0.695,
+    "0.6": 0.6945,
+    "0.7": 0.6875,
+    "0.8": 0.67575,
+    "0.9": 0.663,
+    "1.0": 0.64475
+  },
+  "selected_weight": 0.5,
+  "validation": {
+    "first_stage": {
+      "recall@1": 0.3295,
+      "precision@1": 0.3295,
+      "ndcg@1": 0.3295,
+      "mrr@1": 0.3295,
+      "recall@5": 0.57275,
+      "precision@5": 0.11455,
+      "ndcg@5": 0.45777,
+      "mrr@5": 0.41962,
+      "recall@10": 0.66725,
+      "precision@10": 0.06672,
+      "ndcg@10": 0.48833,
+      "mrr@10": 0.43224
+    },
+    "cross_encoder_only": {
+      "recall@1": 0.32575,
+      "precision@1": 0.32575,
+      "ndcg@1": 0.32575,
+      "mrr@1": 0.32575,
+      "recall@5": 0.54025,
+      "precision@5": 0.10805,
+      "ndcg@5": 0.44029,
+      "mrr@5": 0.40699,
+      "recall@10": 0.64125,
+      "precision@10": 0.06412,
+      "ndcg@10": 0.47279,
+      "mrr@10": 0.42032
+    },
+    "fused_w0.5": {
+      "recall@1": 0.3845,
+      "precision@1": 0.3845,
+      "ndcg@1": 0.3845,
+      "mrr@1": 0.3845,
+      "recall@5": 0.614,
+      "precision@5": 0.1228,
+      "ndcg@5": 0.50802,
+      "mrr@5": 0.47265,
+      "recall@10": 0.7075,
+      "precision@10": 0.07075,
+      "ndcg@10": 0.53834,
+      "mrr@10": 0.4852
+    }
+  },
+  "test_csv": {
+    "rows": 19858,
+    "candidates_per_row": 10,
+    "valid": true,
+    "sha256": "501bbfa8c12258f34612fb038db27f4759a5fac8e5a136a6ef8ec1438ca48ee6"
+  },
+  "test_top10_candidates_match_hybrid_csv": true,
+  "dev_model_log": {
+    "args": {
+      "data_dir": "/home/ec2-user/SageMaker/DATA304_final_project/project_release",
+      "negatives": "outputs/ltr/negatives_dev.json",
+      "tune_candidates": "outputs/rerank/candidates_tune.json",
+      "pseudo": "outputs/pseudo/pseudo_dev.json",
+      "model": "google-bert/bert-base-uncased",
+      "revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "output_dir": "outputs/pseudo/ce-dev",
+      "epochs": "2",
+      "stop_after_epoch": "None",
+      "batch_queries": "8",
+      "group_size": "8",
+      "negative_pool": "30",
+      "lr": "2e-05",
+      "warmup_ratio": "0.1",
+      "max_length": "512",
+      "review_tokens": "64",
+      "eval_batch_size": "256"
+    },
+    "provenance": {
+      "base_model": "google-bert/bert-base-uncased",
+      "base_revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "fine_tuning_data": "course train_gold.json + pseudo-labelled course queries (self-training)",
+      "train_gold_sha256": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+      "catalog_sha256": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+      "negatives_sha256": "997b73fe08cc06748f653070c2afb977fbae4124136dfc7ca49b9f27bcfe8181",
+      "negatives_set": "dev",
+      "train_queries": 12000,
+      "objective": "cross-encoder, listwise softmax cross-entropy over (1 positive + BM25 negatives) groups",
+      "max_length": 512,
+      "review_tokens": 64,
+      "pseudo_labels_sha256": "ae542c30dac23dc489dc0883b73e752a4348f2444b9d3c6c8e884867a37386cd",
+      "pseudo_set": "pseudo-dev",
+      "pseudo_queries": 1079,
+      "pseudo_threshold": 1.65
+    },
+    "steps_per_epoch": 1634,
+    "epochs": [
+      {
+        "epoch": 1,
+        "mean_loss": 1.3811205671678413,
+        "seconds": 2141.210800917,
+        "tuning_slice": {
+          "recall_at_10_by_weight": {
+            "0.0": 0.65575,
+            "0.1": 0.6645,
+            "0.2": 0.67125,
+            "0.3": 0.6805,
+            "0.4": 0.68875,
+            "0.5": 0.6945,
+            "0.6": 0.69375,
+            "0.7": 0.68475,
+            "0.8": 0.67375,
+            "0.9": 0.655,
+            "1.0": 0.633
+          },
+          "best_weight": 0.5
+        }
+      },
+      {
+        "epoch": 2,
+        "mean_loss": 0.9126262822469999,
+        "seconds": 2131.295558585,
+        "tuning_slice": {
+          "recall_at_10_by_weight": {
+            "0.0": 0.65575,
+            "0.1": 0.66425,
+            "0.2": 0.67625,
+            "0.3": 0.68575,
+            "0.4": 0.69225,
+            "0.5": 0.695,
+            "0.6": 0.6945,
+            "0.7": 0.6875,
+            "0.8": 0.67575,
+            "0.9": 0.663,
+            "1.0": 0.64475
+          },
+          "best_weight": 0.5
+        }
+      }
+    ],
+    "environment": {
+      "python": "3.10.20",
+      "torch": "2.10.0+cu128",
+      "transformers": "5.20.2",
+      "device": "NVIDIA L4"
+    },
+    "selected_epoch": 2,
+    "completed": true
+  },
+  "full_model_log": {
+    "args": {
+      "data_dir": "/home/ec2-user/SageMaker/DATA304_final_project/project_release",
+      "negatives": "outputs/ltr/negatives_full.json",
+      "tune_candidates": "None",
+      "pseudo": "outputs/pseudo/pseudo_full.json",
+      "model": "google-bert/bert-base-uncased",
+      "revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "output_dir": "outputs/pseudo/ce-full",
+      "epochs": "2",
+      "stop_after_epoch": "2",
+      "batch_queries": "8",
+      "group_size": "8",
+      "negative_pool": "30",
+      "lr": "2e-05",
+      "warmup_ratio": "0.1",
+      "max_length": "512",
+      "review_tokens": "64",
+      "eval_batch_size": "256"
+    },
+    "provenance": {
+      "base_model": "google-bert/bert-base-uncased",
+      "base_revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "fine_tuning_data": "course train_gold.json + pseudo-labelled course queries (self-training)",
+      "train_gold_sha256": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+      "catalog_sha256": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+      "negatives_sha256": "93738e3065160619bd528395ec8e9b98aff0733da29fc466b52121e5c39a5571",
+      "negatives_set": "full",
+      "train_queries": 20000,
+      "objective": "cross-encoder, listwise softmax cross-entropy over (1 positive + BM25 negatives) groups",
+      "max_length": 512,
+      "review_tokens": 64,
+      "pseudo_labels_sha256": "833fd0320cecc17f5c7015171843aa487a6bbb3b5db409547e17337982aeb9fb",
+      "pseudo_set": "pseudo-full",
+      "pseudo_queries": 2762,
+      "pseudo_threshold": 1.65
+    },
+    "steps_per_epoch": 2845,
+    "epochs": [
+      {
+        "epoch": 1,
+        "mean_loss": 1.271586278101891,
+        "seconds": 3703.767366532
+      },
+      {
+        "epoch": 2,
+        "mean_loss": 0.8183279557988336,
+        "seconds": 3701.12459372
+      }
+    ],
+    "environment": {
+      "python": "3.10.20",
+      "torch": "2.10.0+cu128",
+      "transformers": "5.20.2",
+      "device": "NVIDIA L4"
+    },
+    "selected_epoch": 2,
+    "completed": true
+  },
+  "environment": {
+    "python": "3.10.20",
+    "numpy": "2.2.6"
+  },
+  "kaggle_recall_at_10": null,
+  "paired_comparison_vs_rerank_validation": {
+    "recall_at_10_wins": 75,
+    "recall_at_10_losses": 74,
+    "recall_at_1_wins": 117,
+    "recall_at_1_losses": 86
+  },
+  "test_vs_rerank": {
+    "same_top10_set": 3116,
+    "same_top1": 16506,
+    "queries": 19858
+  }
+}

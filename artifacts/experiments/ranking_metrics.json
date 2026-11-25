@@ -92,6 +92,21 @@
       "precision@10": 0.07072,
       "ndcg@10": 0.53436,
       "mrr@10": 0.48007
+    },
+    "Multi-stage + self-trained cross-encoder (pseudo-labels)": {
+      "file": "outputs/pseudo/submission/validation_reranked.csv",
+      "recall@1": 0.3845,
+      "precision@1": 0.3845,
+      "ndcg@1": 0.3845,
+      "mrr@1": 0.3845,
+      "recall@5": 0.614,
+      "precision@5": 0.1228,
+      "ndcg@5": 0.50802,
+      "mrr@5": 0.47265,
+      "recall@10": 0.7075,
+      "precision@10": 0.07075,
+      "ndcg@10": 0.53834,
+      "mrr@10": 0.4852
     }
   }
 }

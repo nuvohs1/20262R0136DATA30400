@@ -110,7 +110,7 @@ Protocols and results: [docs/dense_retrieval.md](docs/dense_retrieval.md), [docs
 
 ## Self-training with pseudo-labels
 
-`bash run_pseudo.sh 2024320020` (GPU, after `run_rerank.sh`) labels unlabeled queries with the confident predictions of the multi-stage ranker (margin threshold at 0.9 precision on the tuning slice) and retrains the cross-encoder on labelled + pseudo-labelled pairs. Only course files are used. The script writes `outputs/pseudo/submission/2024320020_final.csv`. Details: [docs/pseudo_labeling.md](docs/pseudo_labeling.md).
+`bash run_pseudo.sh 2024320020` (GPU, after `run_rerank.sh`) labels unlabeled queries with the confident predictions of the multi-stage ranker (margin threshold at 0.9 precision on the tuning slice) and retrains the cross-encoder on labelled + pseudo-labelled pairs. Only course files are used. Local validation: Recall@1 37.68% → 38.45%, Recall@10 unchanged (70.73% → 70.75%), so step 4b remains the selected pipeline. The script writes `outputs/pseudo/submission/2024320020_final.csv`. Details: [docs/pseudo_labeling.md](docs/pseudo_labeling.md).
 
 ## Compare BM25 weighting and review fusion
 
