@@ -116,6 +116,10 @@ Protocols and results: [docs/dense_retrieval.md](docs/dense_retrieval.md), [docs
 
 `bash run_category.sh 2024320020` (GPU for one short encoding step, after `run_rerank.sh`) trains a label-GCN category classifier multi-task on queries and products (training-query categories and the official taxonomy only) and adds a category-agreement score to the reranker, with its weight chosen on the tuning slice. The classifier reaches 79.5% top-5 accuracy over 500 categories, but the score does not improve Recall@10 (β = 0 is selected), because the candidates already share the query's category. The script writes `outputs/category/submission/2024320020_final.csv`. Details: [docs/category_auxiliary.md](docs/category_auxiliary.md).
 
+## Approximate nearest-neighbour search (IVF)
+
+`python scripts/run_ann.py` (CPU) builds an IVF index (spherical k-means, 256 cells) over the fine-tuned BERT product embeddings and measures the speed/accuracy trade-off against exact dense search for several `nprobe` values, with `nprobe` selected on the tuning slice. Details: [docs/ann_ivf.md](docs/ann_ivf.md).
+
 ## Compare BM25 weighting and review fusion
 
 ```bash
