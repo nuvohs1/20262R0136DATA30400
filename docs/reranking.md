@@ -70,4 +70,4 @@ Observations:
 - The tuning-slice curve is smooth and peaks at w = 0.5. The validation gain (+4.0) matches the tuning-slice gain (+3.9), so the choice of w did not overfit the tuning slice.
 - The selected epoch differs little from epoch 1 (0.6950 vs 0.6940). Longer training is unlikely to help much.
 
-**Test file:** `outputs/rerank/submission/2024320020_final.csv` (19,858 rows, ten distinct valid IDs per row, sha256 `e16dacbe…`). The test candidates' top 10 equal the stage-1 hybrid submission (Kaggle 0.72333), as checked by `run_rerank_eval.py`. Reranking changes the top-1 product for 6,744 of the 19,858 test queries. Kaggle Recall@10: pending submission.
+**Test file:** `outputs/rerank/submission/2024320020_final.csv` (19,858 rows, ten distinct valid IDs per row, sha256 `e16dacbe…`). The test candidates' top 10 equal the stage-1 hybrid submission (Kaggle 0.72333), as checked by `run_rerank_eval.py`. Reranking changes the top-1 product for 6,744 of the 19,858 test queries. Kaggle Recall@10: **0.76916** (stage-1 hybrid: 0.72333, +4.6 points).
