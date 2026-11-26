@@ -14,27 +14,21 @@ From `python scripts/evaluate_rankings.py` (`artifacts/experiments/ranking_metri
 | Multi-stage: hybrid top 50 + BERT cross-encoder (w 0.5) | 0.3767 | 0.7073 | 0.5344 | 0.4801 | 0.76916 |
 | Multi-stage + self-trained cross-encoder | 0.3845 | 0.7075 | 0.5383 | 0.4852 | 0.76936 |
 | Multi-stage + category auxiliary (β = 0 selected) | identical to the cross-encoder row | | | | same file |
-| **Multi-stage, cross-encoder trained with hybrid hard negatives (w 0.6)** | 0.3852 | **0.7145** | 0.5409 | 0.4864 | pending |
+| Multi-stage, cross-encoder trained with hybrid hard negatives (w 0.6) | 0.3852 | 0.7145 | 0.5409 | 0.4864 | 0.75929 |
 | ANN (IVF) | efficiency study of the dense stage; no new submission | | | | – |
 
-## Decision
+## Decision (provisional)
 
-**Final file: the multi-stage ranker with the cross-encoder trained on hybrid hard negatives, `outputs/hardneg/submission/2024320020_final.csv`** (produced by `run_hardneg.sh`).
+**Current final file: step 4b, `outputs/rerank/submission/2024320020_final.csv`.** This is pending the test-like proxy validation (`docs/memory_proxy.md`).
 
-- **It has the highest validation Recall@10:** 0.7145, against 0.7073 for step 4b and 0.7075 for self-training. It also leads on every other metric.
-- **The gain was found on the tuning slice first** (0.695 → 0.702) and then confirmed once on validation. In the paired comparison with step 4b, it wins 149 queries and loses 120 at @10, and 195 vs 154 at @5 (`docs/hard_negatives.md`).
-- **The pipeline is no more complex than step 4b.** Only the source of the training negatives changes, so the earlier tie-break by simplicity does not apply.
-- **Earlier decision (superseded):** step 4b was selected over self-training, because the two tied on Recall@10 (0.7073 vs 0.7075, 75 wins vs 74 losses) and step 4b is simpler.
-- **No overfitting to the leaderboard.** Every weight, epoch and threshold was chosen on the tuning slice of the training data. Validation was read once per method. Test labels and Kaggle scores were never used to choose anything.
+- **Why the old validation was not enough.** The hybrid-negative reranker had the highest validation Recall@10 (0.7145) but scored 0.75929 on Kaggle, a full point below step 4b. The old validation cannot represent test products that have labelled training reviews, which are about half of the test set, so it is not a reliable guide between rerankers. Its rule is replaced by the proxy validation, which was fixed in advance (`docs/memory_proxy.md`).
+- **How the final file will be chosen.** Among the proxy candidates (first stage with or without the memory bonus × the two cross-encoders), by proxy tuning-slice Recall@10. Proxy validation is reported once.
+- **No overfitting to the leaderboard.** No weight, epoch, threshold or proxy setting is fitted to Kaggle scores or test data. The Kaggle result was used only to notice that the old validation did not match test.
+- **Self-training is excluded from the final choice.** It used the test queries' reviews (without labels) as extra training data. That is transductive learning, and the final model should not be trained on test inputs.
 
 ## Kaggle final submissions
 
-If two final submissions may be selected on Kaggle, select:
-
-1. the hybrid-negative ranker (`outputs/hardneg/submission/2024320020_final.csv`): the selected final file;
-2. the step-4b ranker (`outputs/rerank/submission/2024320020_final.csv`, Kaggle 0.76916): the previous selection, kept as a safe alternative.
-
-The hybrid-negative file is uploaded to the LMS as `2024320020_final.csv`.
+To be confirmed after the proxy run. Until then: step 4b (0.76916).
 
 ## Format check
 
@@ -42,8 +36,8 @@ The hybrid-negative file is uploaded to the LMS as `2024320020_final.csv`.
 
 | File | Rows | Valid | SHA-256 |
 | --- | --- | --- | --- |
-| `outputs/hardneg/submission/2024320020_final.csv` (final) | 19,858 | yes | `5853f6cb53f4a5c5b5ae857dd0acbdec90193eec70f6ec498732764edb401e73` |
-| `outputs/rerank/submission/2024320020_final.csv` | 19,858 | yes | `e16dacbeaf32059ad97f410fde33672f582a9c00e4935d06799fcc6296b37380` |
+| `outputs/hardneg/submission/2024320020_final.csv` | 19,858 | yes | `5853f6cb53f4a5c5b5ae857dd0acbdec90193eec70f6ec498732764edb401e73` |
+| `outputs/rerank/submission/2024320020_final.csv` (current final) | 19,858 | yes | `e16dacbeaf32059ad97f410fde33672f582a9c00e4935d06799fcc6296b37380` |
 | `outputs/pseudo/submission/2024320020_final.csv` | 19,858 | yes | `501bbfa8c12258f34612fb038db27f4759a5fac8e5a136a6ef8ec1438ca48ee6` |
 
 The CSV files are generated outputs and are not committed (`outputs/` is in `.gitignore`). The SHA-256 above identifies the submitted file.

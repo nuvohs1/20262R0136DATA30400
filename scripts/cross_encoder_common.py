@@ -31,18 +31,23 @@ class PairEncoder:
             out.extend(np.asarray(ids, dtype=np.int32) for ids in enc)
         return out
 
-    def queries(self, queries):
-        """Token IDs of the five concatenated reviews for each query record."""
-        flat = self._ids([t for q in queries for t in review_texts(q)], self.review_tokens)
+    def queries(self, queries, review_indices=None):
+        """Token IDs of the concatenated reviews for each query record. review_indices (proxy
+        validation) keeps only the listed reviews of each query, in their original order."""
+        texts = [review_texts(q) for q in queries]
+        if review_indices is not None:
+            texts = [[q[i] for i in idx] for q, idx in zip(texts, review_indices)]
+        flat = self._ids([t for q in texts for t in q], self.review_tokens)
         sep = np.asarray([self.sep], dtype=np.int32)
-        out = []
-        for n in range(len(queries)):
+        out, start = [], 0
+        for q in texts:
             parts = []
-            for j, ids in enumerate(flat[5 * n:5 * n + 5]):
+            for j, ids in enumerate(flat[start:start + len(q)]):
                 if j:
                     parts.append(sep)
                 parts.append(ids)
             out.append(np.concatenate(parts))
+            start += len(q)
         return out
 
     def length(self, query, item):
