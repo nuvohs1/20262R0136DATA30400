@@ -5,7 +5,8 @@ with a single-logit classification head. Training data: course train_gold.json o
 
 Objective: for every training query, a group of G candidates = its correct product + G-1
 negatives drawn without replacement (random.Random(42 + epoch)) from the top
---negative-pool BM25 results of scripts/mine_negatives.py. Each pair is scored
+--negative-pool first-stage results of scripts/mine_negatives.py (BM25) or
+scripts/mine_hybrid_negatives.py (BM25 + LTR BERT hybrid, the reranker's own first stage). Each pair is scored
 independently; the loss is softmax cross-entropy over the G scores (listwise, ListNet top-1).
 
 Protocol (same as the bi-encoder):
@@ -81,8 +82,14 @@ def main():
     train_sha = sha256(args.data_dir / "train_gold.json")
     if train_sha != record["train_gold_sha256"]:
         raise ValueError("Negatives were mined from a different train_gold.json")
-    if record["first_stage"].get("dense"):
-        raise ValueError("Negatives must come from the BM25-only first stage")
+    stage = record["first_stage"]
+    if stage.get("dense"):
+        # Hybrid negatives (scripts/mine_hybrid_negatives.py): the dense part must be our own LTR
+        # bert-base-uncased checkpoint (checked by model_policy at mining time), trained on the same
+        # query set, so no other model and no held-out query influences the negatives.
+        if not stage.get("dense_checkpoint_checked") or stage.get("dense_negatives_set") != record["set"]:
+            raise ValueError("Hybrid negatives must come from the verified LTR model of the same query set")
+    negative_source = "hybrid BM25 + LTR BERT" if stage.get("dense") else "BM25"
     train = {q["query_id"]: q for q in read_json(args.data_dir / "train_gold.json")}
     train_ids = record["train_query_ids"]
     held_out = set(record["tune_query_ids"]) | set(record["validation_query_ids_excluded"])
@@ -118,7 +125,8 @@ def main():
         "fine_tuning_data": PSEUDO_FINE_TUNING_DATA if pseudo else "course train_gold.json only", "train_gold_sha256": train_sha,
         "catalog_sha256": sha256(args.data_dir / "catalog.json"), "negatives_sha256": sha256(args.negatives),
         "negatives_set": record["set"], "train_queries": len(train_ids),
-        "objective": "cross-encoder, listwise softmax cross-entropy over (1 positive + BM25 negatives) groups",
+        "objective": f"cross-encoder, listwise softmax cross-entropy over (1 positive + {negative_source} negatives) groups",
+        "negative_source": negative_source,
         "max_length": args.max_length, "review_tokens": args.review_tokens,
     }
     if pseudo is not None:

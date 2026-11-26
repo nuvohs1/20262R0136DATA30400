@@ -107,6 +107,21 @@
       "precision@10": 0.07075,
       "ndcg@10": 0.53834,
       "mrr@10": 0.4852
+    },
+    "Multi-stage + cross-encoder trained with hybrid hard negatives": {
+      "file": "outputs/hardneg/submission/validation_reranked.csv",
+      "recall@1": 0.38525,
+      "precision@1": 0.38525,
+      "ndcg@1": 0.38525,
+      "mrr@1": 0.38525,
+      "recall@5": 0.62325,
+      "precision@5": 0.12465,
+      "ndcg@5": 0.51136,
+      "mrr@5": 0.4742,
+      "recall@10": 0.7145,
+      "precision@10": 0.07145,
+      "ndcg@10": 0.54085,
+      "mrr@10": 0.48636
     }
   }
 }

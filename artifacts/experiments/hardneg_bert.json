@@ -1,0 +1,322 @@
+{
+  "method": "multi-stage: BM25 v2 + LTR BERT candidates -> BERT cross-encoder trained with hybrid hard negatives",
+  "pseudo_labels": null,
+  "evaluation": "local development validation (4,000 queries, full catalog); not a Kaggle score",
+  "candidate_recall": {
+    "tune": {
+      "recall_at_10": 0.65575,
+      "recall_at_20": 0.756,
+      "recall_at_30": 0.81425,
+      "recall_at_50": 0.8755
+    },
+    "validation": {
+      "recall_at_10": 0.66725,
+      "recall_at_20": 0.76675,
+      "recall_at_30": 0.81575,
+      "recall_at_50": 0.879
+    }
+  },
+  "first_stage": {
+    "tune": {
+      "bm25": "v2 metadata only",
+      "rsj_queries": 12000,
+      "dense": "bert-ltr-dev",
+      "alpha": 3.0,
+      "depth": 50
+    },
+    "validation": {
+      "bm25": "v2 metadata only",
+      "rsj_queries": 16000,
+      "dense": "bert-ltr-dev",
+      "alpha": 3.0,
+      "depth": 50
+    },
+    "test": {
+      "bm25": "v2 + labelled-review expansion",
+      "rsj_queries": 20000,
+      "dense": "bert-ltr-full",
+      "alpha": 3.0,
+      "depth": 50
+    }
+  },
+  "weight_grid": [
+    0.0,
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1.0
+  ],
+  "tuning_slice_recall_at_10_by_weight": {
+    "0.0": 0.65575,
+    "0.1": 0.671,
+    "0.2": 0.68275,
+    "0.3": 0.692,
+    "0.4": 0.6965,
+    "0.5": 0.70075,
+    "0.6": 0.702,
+    "0.7": 0.6975,
+    "0.8": 0.69075,
+    "0.9": 0.6775,
+    "1.0": 0.66625
+  },
+  "selected_weight": 0.6,
+  "validation": {
+    "first_stage": {
+      "recall@1": 0.3295,
+      "precision@1": 0.3295,
+      "ndcg@1": 0.3295,
+      "mrr@1": 0.3295,
+      "recall@5": 0.57275,
+      "precision@5": 0.11455,
+      "ndcg@5": 0.45777,
+      "mrr@5": 0.41962,
+      "recall@10": 0.66725,
+      "precision@10": 0.06672,
+      "ndcg@10": 0.48833,
+      "mrr@10": 0.43224
+    },
+    "cross_encoder_only": {
+      "recall@1": 0.34075,
+      "precision@1": 0.34075,
+      "ndcg@1": 0.34075,
+      "mrr@1": 0.34075,
+      "recall@5": 0.57,
+      "precision@5": 0.114,
+      "ndcg@5": 0.463,
+      "mrr@5": 0.42738,
+      "recall@10": 0.6675,
+      "precision@10": 0.06675,
+      "ndcg@10": 0.49468,
+      "mrr@10": 0.44055
+    },
+    "fused_w0.6": {
+      "recall@1": 0.38525,
+      "precision@1": 0.38525,
+      "ndcg@1": 0.38525,
+      "mrr@1": 0.38525,
+      "recall@5": 0.62325,
+      "precision@5": 0.12465,
+      "ndcg@5": 0.51136,
+      "mrr@5": 0.4742,
+      "recall@10": 0.7145,
+      "precision@10": 0.07145,
+      "ndcg@10": 0.54085,
+      "mrr@10": 0.48636
+    }
+  },
+  "test_csv": {
+    "rows": 19858,
+    "candidates_per_row": 10,
+    "valid": true,
+    "sha256": "5853f6cb53f4a5c5b5ae857dd0acbdec90193eec70f6ec498732764edb401e73"
+  },
+  "test_top10_candidates_match_hybrid_csv": true,
+  "dev_model_log": {
+    "args": {
+      "data_dir": "/home/ec2-user/SageMaker/DATA304_final_project/project_release",
+      "negatives": "outputs/hardneg/negatives_dev.json",
+      "tune_candidates": "outputs/rerank/candidates_tune.json",
+      "pseudo": "None",
+      "model": "google-bert/bert-base-uncased",
+      "revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "output_dir": "outputs/hardneg/ce-dev",
+      "epochs": "2",
+      "stop_after_epoch": "None",
+      "batch_queries": "8",
+      "group_size": "8",
+      "negative_pool": "30",
+      "lr": "2e-05",
+      "warmup_ratio": "0.1",
+      "max_length": "512",
+      "review_tokens": "64",
+      "eval_batch_size": "256"
+    },
+    "provenance": {
+      "base_model": "google-bert/bert-base-uncased",
+      "base_revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "fine_tuning_data": "course train_gold.json only",
+      "train_gold_sha256": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+      "catalog_sha256": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+      "negatives_sha256": "77e00b1de1390035f1833de70dfafeefe455bd6ce77d36118c38f688b4218f86",
+      "negatives_set": "dev",
+      "train_queries": 12000,
+      "objective": "cross-encoder, listwise softmax cross-entropy over (1 positive + hybrid BM25 + LTR BERT negatives) groups",
+      "negative_source": "hybrid BM25 + LTR BERT",
+      "max_length": 512,
+      "review_tokens": 64
+    },
+    "steps_per_epoch": 1500,
+    "epochs": [
+      {
+        "epoch": 1,
+        "mean_loss": 1.6198605348666508,
+        "seconds": 1909.271676674,
+        "tuning_slice": {
+          "recall_at_10_by_weight": {
+            "0.0": 0.65575,
+            "0.1": 0.667,
+            "0.2": 0.677,
+            "0.3": 0.688,
+            "0.4": 0.6925,
+            "0.5": 0.6955,
+            "0.6": 0.693,
+            "0.7": 0.69075,
+            "0.8": 0.681,
+            "0.9": 0.67175,
+            "1.0": 0.65525
+          },
+          "best_weight": 0.5
+        }
+      },
+      {
+        "epoch": 2,
+        "mean_loss": 1.2405654301842053,
+        "seconds": 1898.9210596770004,
+        "tuning_slice": {
+          "recall_at_10_by_weight": {
+            "0.0": 0.65575,
+            "0.1": 0.671,
+            "0.2": 0.68275,
+            "0.3": 0.692,
+            "0.4": 0.6965,
+            "0.5": 0.70075,
+            "0.6": 0.702,
+            "0.7": 0.6975,
+            "0.8": 0.69075,
+            "0.9": 0.6775,
+            "1.0": 0.66625
+          },
+          "best_weight": 0.6
+        }
+      }
+    ],
+    "environment": {
+      "python": "3.10.20",
+      "torch": "2.10.0+cu128",
+      "transformers": "5.20.2",
+      "device": "NVIDIA L4"
+    },
+    "selected_epoch": 2,
+    "completed": true
+  },
+  "full_model_log": {
+    "args": {
+      "data_dir": "/home/ec2-user/SageMaker/DATA304_final_project/project_release",
+      "negatives": "outputs/hardneg/negatives_full.json",
+      "tune_candidates": "None",
+      "pseudo": "None",
+      "model": "google-bert/bert-base-uncased",
+      "revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "output_dir": "outputs/hardneg/ce-full",
+      "epochs": "2",
+      "stop_after_epoch": "2",
+      "batch_queries": "8",
+      "group_size": "8",
+      "negative_pool": "30",
+      "lr": "2e-05",
+      "warmup_ratio": "0.1",
+      "max_length": "512",
+      "review_tokens": "64",
+      "eval_batch_size": "256"
+    },
+    "provenance": {
+      "base_model": "google-bert/bert-base-uncased",
+      "base_revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "fine_tuning_data": "course train_gold.json only",
+      "train_gold_sha256": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+      "catalog_sha256": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+      "negatives_sha256": "62fe456d21c9306d46f0249f2951dcd1b86e9d0b1bce82a0baef56a18cced882",
+      "negatives_set": "full",
+      "train_queries": 20000,
+      "objective": "cross-encoder, listwise softmax cross-entropy over (1 positive + hybrid BM25 + LTR BERT negatives) groups",
+      "negative_source": "hybrid BM25 + LTR BERT",
+      "max_length": 512,
+      "review_tokens": 64
+    },
+    "steps_per_epoch": 2500,
+    "epochs": [
+      {
+        "epoch": 1,
+        "mean_loss": 1.5676905581593514,
+        "seconds": 3179.386500265
+      },
+      {
+        "epoch": 2,
+        "mean_loss": 1.1982961302638053,
+        "seconds": 3184.9872700319993
+      }
+    ],
+    "environment": {
+      "python": "3.10.20",
+      "torch": "2.10.0+cu128",
+      "transformers": "5.20.2",
+      "device": "NVIDIA L4"
+    },
+    "selected_epoch": 2,
+    "completed": true
+  },
+  "environment": {
+    "python": "3.10.20",
+    "numpy": "2.2.6"
+  },
+  "kaggle_recall_at_10": null,
+  "hard_negatives": {
+    "dev": {
+      "set": "dev",
+      "first_stage": {
+        "bm25": "v2 metadata only, no review expansion",
+        "dense": "bert-ltr-dev",
+        "dense_negatives_set": "dev",
+        "dense_checkpoint_checked": true,
+        "alpha": 3.0,
+        "depth": 51,
+        "rsj_source": "the 12,000 queries of this set"
+      },
+      "first_stage_recall_at_10_on_these_training_queries": 0.7850833333333334,
+      "train_gold_sha256": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+      "catalog_sha256": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+      "train_queries": 12000,
+      "negatives_sha256": "77e00b1de1390035f1833de70dfafeefe455bd6ce77d36118c38f688b4218f86"
+    },
+    "full": {
+      "set": "full",
+      "first_stage": {
+        "bm25": "v2 metadata only, no review expansion",
+        "dense": "bert-ltr-full",
+        "dense_negatives_set": "full",
+        "dense_checkpoint_checked": true,
+        "alpha": 3.0,
+        "depth": 51,
+        "rsj_source": "the 20,000 queries of this set"
+      },
+      "first_stage_recall_at_10_on_these_training_queries": 0.79115,
+      "train_gold_sha256": "8802f520f524f430ab796fc15ab14bb6acc6f6d0c414573faf5258798df4c80c",
+      "catalog_sha256": "8862de3da0ad211eae04beff4dfeecabbc4ba68a346e014b63670bb9362f440d",
+      "train_queries": 20000,
+      "negatives_sha256": "62fe456d21c9306d46f0249f2951dcd1b86e9d0b1bce82a0baef56a18cced882"
+    }
+  },
+  "paired_comparison_vs_step_4b_validation": {
+    "recall@1": {
+      "wins": 208,
+      "losses": 174,
+      "sign_test_p": 0.091
+    },
+    "recall@5": {
+      "wins": 195,
+      "losses": 154,
+      "sign_test_p": 0.032
+    },
+    "recall@10": {
+      "wins": 149,
+      "losses": 120,
+      "sign_test_p": 0.088
+    }
+  }
+}
