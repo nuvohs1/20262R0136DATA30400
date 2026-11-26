@@ -5,6 +5,8 @@ Inputs (scripts/make_memory_candidates.py, scripts/score_cross_encoder.py):
   outputs/memory/scores/{model}_{variant}_{split}.npy  for model in {rerank, hardneg}
   (rerank = step-4b cross-encoder trained with BM25 negatives; hardneg = cross-encoder trained
   with hybrid negatives). Model A scores the proxy splits, model B scores test.
+  ens = both cross-encoders averaged: (z(rerank) + z(hardneg)) / 2 within each query's
+  candidates (no extra training; the two models differ in their training negatives).
 
 For every (first-stage variant, cross-encoder) pair, the fusion weight w is chosen on the proxy
 tuning slice. The pair with the best proxy tuning-slice Recall@10 is selected (ties: exp before
@@ -25,10 +27,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from review_retrieval.common import read_json, write_json, write_submission
 from review_retrieval.metrics import mean_metrics
-from review_retrieval.rerank import WEIGHTS, rerank_positions, select_weight
+from review_retrieval.rerank import WEIGHTS, rerank_positions, row_zscore, select_weight
 
 VARIANTS = ("exp", "mem")
-MODELS = ("rerank", "hardneg")
+MODELS = ("rerank", "hardneg", "ens")  # tie-break order: simpler / earlier first
 EARLIER_WEIGHTS = {"rerank": 0.5, "hardneg": 0.6}
 
 
@@ -59,7 +61,10 @@ def main():
     gold_by_id = {q["query_id"]: q["item_id"] for q in read_json(args.data_dir / "train_gold.json")}
     catalog_ids = sorted(p["item_id"] for p in read_json(args.data_dir / "catalog.json"))
     cands = {(v, s): read_json(d / f"candidates_{v}_{s}.json") for v in VARIANTS for s in ("proxy_tune", "proxy_validation", "test")}
-    scores = lambda m, v, s: np.load(d / "scores" / f"{m}_{v}_{s}.npy")
+    def scores(m, v, s):
+        if m == "ens":
+            return (row_zscore(scores("rerank", v, s)) + row_zscore(scores("hardneg", v, s))) / 2
+        return np.load(d / "scores" / f"{m}_{v}_{s}.npy")
 
     tuning, results = {}, {}
     for v in VARIANTS:
@@ -84,7 +89,7 @@ def main():
             s = scores(m, v, "proxy_validation")
             w = tuning[f"{v}+{m}"]["selected_weight"]
             results[f"{v}+{m} (w {w}, proxy-tuned)"] = report(valid, s, w, valid_gold)
-            if v == "exp":
+            if v == "exp" and m in EARLIER_WEIGHTS:
                 results[f"{v}+{m} (w {EARLIER_WEIGHTS[m]}, as submitted before)"] = report(valid, s, EARLIER_WEIGHTS[m], valid_gold)
     for name, r in results.items():
         print(f"  proxy validation {name}: R@10 {r['all']['recall@10']:.4f} "

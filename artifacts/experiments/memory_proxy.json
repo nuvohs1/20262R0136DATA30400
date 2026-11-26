@@ -1,0 +1,589 @@
+{
+  "method": "test-like proxy validation (labelled-review memory) for the multi-stage ranker",
+  "evaluation": "local proxy: 3-review queries; half of the products have 2 labelled reviews (seed 42); w and the pair chosen on the proxy tuning slice; proxy validation reported once; not a Kaggle score",
+  "memory_selection": {
+    "rule": "proxy tuning-slice first-stage Recall@10; ties -> smaller mu, then larger tau",
+    "memory_share": 0.5,
+    "alpha": 3.0,
+    "tuning_recall_at_10": {
+      "mu0.0_tau0.0": 0.547,
+      "mu0.0_tau1.0": 0.547,
+      "mu0.0_tau2.0": 0.547,
+      "mu0.0_tau3.0": 0.547,
+      "mu0.5_tau0.0": 0.56375,
+      "mu0.5_tau1.0": 0.56525,
+      "mu0.5_tau2.0": 0.5645,
+      "mu0.5_tau3.0": 0.561,
+      "mu1.0_tau0.0": 0.54625,
+      "mu1.0_tau1.0": 0.55925,
+      "mu1.0_tau2.0": 0.56775,
+      "mu1.0_tau3.0": 0.569,
+      "mu2.0_tau0.0": 0.4955,
+      "mu2.0_tau1.0": 0.5165,
+      "mu2.0_tau2.0": 0.54625,
+      "mu2.0_tau3.0": 0.56475,
+      "mu3.0_tau0.0": 0.447,
+      "mu3.0_tau1.0": 0.47925,
+      "mu3.0_tau2.0": 0.512,
+      "mu3.0_tau3.0": 0.5515,
+      "mu4.0_tau0.0": 0.40425,
+      "mu4.0_tau1.0": 0.44125,
+      "mu4.0_tau2.0": 0.4845,
+      "mu4.0_tau3.0": 0.5265
+    },
+    "selected": {
+      "mu": 1.0,
+      "tau": 3.0
+    }
+  },
+  "candidate_recall": {
+    "exp/proxy_tune": {
+      "recall_at_10": 0.547,
+      "recall_at_20": 0.65875,
+      "recall_at_30": 0.7215,
+      "recall_at_50": 0.79725
+    },
+    "exp/proxy_validation": {
+      "recall_at_10": 0.561,
+      "recall_at_20": 0.66725,
+      "recall_at_30": 0.72825,
+      "recall_at_50": 0.803
+    },
+    "mem/proxy_tune": {
+      "recall_at_10": 0.569,
+      "recall_at_20": 0.6725,
+      "recall_at_30": 0.73125,
+      "recall_at_50": 0.80125
+    },
+    "mem/proxy_validation": {
+      "recall_at_10": 0.56425,
+      "recall_at_20": 0.67325,
+      "recall_at_30": 0.73375,
+      "recall_at_50": 0.80275
+    }
+  },
+  "first_stage": {
+    "exp/proxy_tune": {
+      "bm25": "v2 + review expansion (labelled + proxy memory)",
+      "rsj_queries": 12000,
+      "dense": "bert-ltr-dev",
+      "alpha": 3.0,
+      "depth": 50
+    },
+    "exp/proxy_validation": {
+      "bm25": "v2 + review expansion (labelled + proxy memory)",
+      "rsj_queries": 16000,
+      "dense": "bert-ltr-dev",
+      "alpha": 3.0,
+      "depth": 50
+    },
+    "exp/test": {
+      "bm25": "v2 + review expansion (all training queries)",
+      "rsj_queries": 20000,
+      "dense": "bert-ltr-full",
+      "alpha": 3.0,
+      "depth": 50
+    },
+    "mem/proxy_tune": {
+      "bm25": "v2 + review expansion (labelled + proxy memory)",
+      "rsj_queries": 12000,
+      "dense": "bert-ltr-dev",
+      "alpha": 3.0,
+      "depth": 50,
+      "memory_mu": 1.0,
+      "memory_tau": 3.0
+    },
+    "mem/proxy_validation": {
+      "bm25": "v2 + review expansion (labelled + proxy memory)",
+      "rsj_queries": 16000,
+      "dense": "bert-ltr-dev",
+      "alpha": 3.0,
+      "depth": 50,
+      "memory_mu": 1.0,
+      "memory_tau": 3.0
+    },
+    "mem/test": {
+      "bm25": "v2 + review expansion (all training queries)",
+      "rsj_queries": 20000,
+      "dense": "bert-ltr-full",
+      "alpha": 3.0,
+      "depth": 50,
+      "memory_mu": 1.0,
+      "memory_tau": 3.0
+    }
+  },
+  "weight_grid": [
+    0.0,
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1.0
+  ],
+  "proxy_tuning": {
+    "exp+rerank": {
+      "selected_weight": 0.5,
+      "recall_at_10_by_weight": {
+        "0.0": 0.547,
+        "0.1": 0.56175,
+        "0.2": 0.57075,
+        "0.3": 0.5835,
+        "0.4": 0.58725,
+        "0.5": 0.59075,
+        "0.6": 0.5845,
+        "0.7": 0.575,
+        "0.8": 0.56175,
+        "0.9": 0.53875,
+        "1.0": 0.519
+      },
+      "best": 0.59075
+    },
+    "exp+hardneg": {
+      "selected_weight": 0.5,
+      "recall_at_10_by_weight": {
+        "0.0": 0.547,
+        "0.1": 0.562,
+        "0.2": 0.57025,
+        "0.3": 0.579,
+        "0.4": 0.5835,
+        "0.5": 0.58525,
+        "0.6": 0.584,
+        "0.7": 0.57725,
+        "0.8": 0.56525,
+        "0.9": 0.553,
+        "1.0": 0.54125
+      },
+      "best": 0.58525
+    },
+    "mem+rerank": {
+      "selected_weight": 0.5,
+      "recall_at_10_by_weight": {
+        "0.0": 0.569,
+        "0.1": 0.578,
+        "0.2": 0.588,
+        "0.3": 0.59425,
+        "0.4": 0.59825,
+        "0.5": 0.6025,
+        "0.6": 0.59725,
+        "0.7": 0.5825,
+        "0.8": 0.56675,
+        "0.9": 0.54375,
+        "1.0": 0.52275
+      },
+      "best": 0.6025
+    },
+    "mem+hardneg": {
+      "selected_weight": 0.4,
+      "recall_at_10_by_weight": {
+        "0.0": 0.569,
+        "0.1": 0.579,
+        "0.2": 0.59,
+        "0.3": 0.6005,
+        "0.4": 0.6025,
+        "0.5": 0.602,
+        "0.6": 0.598,
+        "0.7": 0.5855,
+        "0.8": 0.5735,
+        "0.9": 0.55925,
+        "1.0": 0.54525
+      },
+      "best": 0.6025
+    }
+  },
+  "selected": "mem+rerank",
+  "proxy_validation": {
+    "exp first stage": {
+      "all": {
+        "recall@1": 0.2555,
+        "precision@1": 0.2555,
+        "ndcg@1": 0.2555,
+        "mrr@1": 0.2555,
+        "recall@5": 0.4655,
+        "precision@5": 0.0931,
+        "ndcg@5": 0.3659,
+        "mrr@5": 0.33288,
+        "recall@10": 0.561,
+        "precision@10": 0.0561,
+        "ndcg@10": 0.39687,
+        "mrr@10": 0.34572
+      },
+      "with_memory": {
+        "recall@1": 0.2695,
+        "precision@1": 0.2695,
+        "ndcg@1": 0.2695,
+        "mrr@1": 0.2695,
+        "recall@5": 0.4835,
+        "precision@5": 0.0967,
+        "ndcg@5": 0.38287,
+        "mrr@5": 0.34946,
+        "recall@10": 0.5735,
+        "precision@10": 0.05735,
+        "ndcg@10": 0.41192,
+        "mrr@10": 0.36142
+      },
+      "without_memory": {
+        "recall@1": 0.2415,
+        "precision@1": 0.2415,
+        "ndcg@1": 0.2415,
+        "mrr@1": 0.2415,
+        "recall@5": 0.4475,
+        "precision@5": 0.0895,
+        "ndcg@5": 0.34893,
+        "mrr@5": 0.31631,
+        "recall@10": 0.5485,
+        "precision@10": 0.05485,
+        "ndcg@10": 0.38181,
+        "mrr@10": 0.33001
+      }
+    },
+    "exp+rerank (w 0.5, proxy-tuned)": {
+      "all": {
+        "recall@1": 0.28975,
+        "precision@1": 0.28975,
+        "ndcg@1": 0.28975,
+        "mrr@1": 0.28975,
+        "recall@5": 0.5025,
+        "precision@5": 0.1005,
+        "ndcg@5": 0.40248,
+        "mrr@5": 0.36925,
+        "recall@10": 0.5995,
+        "precision@10": 0.05995,
+        "ndcg@10": 0.43377,
+        "mrr@10": 0.38213
+      },
+      "with_memory": {
+        "recall@1": 0.3005,
+        "precision@1": 0.3005,
+        "ndcg@1": 0.3005,
+        "mrr@1": 0.3005,
+        "recall@5": 0.519,
+        "precision@5": 0.1038,
+        "ndcg@5": 0.41609,
+        "mrr@5": 0.38193,
+        "recall@10": 0.6125,
+        "precision@10": 0.06125,
+        "ndcg@10": 0.44614,
+        "mrr@10": 0.39422
+      },
+      "without_memory": {
+        "recall@1": 0.279,
+        "precision@1": 0.279,
+        "ndcg@1": 0.279,
+        "mrr@1": 0.279,
+        "recall@5": 0.486,
+        "precision@5": 0.0972,
+        "ndcg@5": 0.38887,
+        "mrr@5": 0.35658,
+        "recall@10": 0.5865,
+        "precision@10": 0.05865,
+        "ndcg@10": 0.42141,
+        "mrr@10": 0.37005
+      }
+    },
+    "exp+rerank (w 0.5, as submitted before)": {
+      "all": {
+        "recall@1": 0.28975,
+        "precision@1": 0.28975,
+        "ndcg@1": 0.28975,
+        "mrr@1": 0.28975,
+        "recall@5": 0.5025,
+        "precision@5": 0.1005,
+        "ndcg@5": 0.40248,
+        "mrr@5": 0.36925,
+        "recall@10": 0.5995,
+        "precision@10": 0.05995,
+        "ndcg@10": 0.43377,
+        "mrr@10": 0.38213
+      },
+      "with_memory": {
+        "recall@1": 0.3005,
+        "precision@1": 0.3005,
+        "ndcg@1": 0.3005,
+        "mrr@1": 0.3005,
+        "recall@5": 0.519,
+        "precision@5": 0.1038,
+        "ndcg@5": 0.41609,
+        "mrr@5": 0.38193,
+        "recall@10": 0.6125,
+        "precision@10": 0.06125,
+        "ndcg@10": 0.44614,
+        "mrr@10": 0.39422
+      },
+      "without_memory": {
+        "recall@1": 0.279,
+        "precision@1": 0.279,
+        "ndcg@1": 0.279,
+        "mrr@1": 0.279,
+        "recall@5": 0.486,
+        "precision@5": 0.0972,
+        "ndcg@5": 0.38887,
+        "mrr@5": 0.35658,
+        "recall@10": 0.5865,
+        "precision@10": 0.05865,
+        "ndcg@10": 0.42141,
+        "mrr@10": 0.37005
+      }
+    },
+    "exp+hardneg (w 0.5, proxy-tuned)": {
+      "all": {
+        "recall@1": 0.29325,
+        "precision@1": 0.29325,
+        "ndcg@1": 0.29325,
+        "mrr@1": 0.29325,
+        "recall@5": 0.506,
+        "precision@5": 0.1012,
+        "ndcg@5": 0.40598,
+        "mrr@5": 0.37273,
+        "recall@10": 0.5965,
+        "precision@10": 0.05965,
+        "ndcg@10": 0.43537,
+        "mrr@10": 0.38493
+      },
+      "with_memory": {
+        "recall@1": 0.311,
+        "precision@1": 0.311,
+        "ndcg@1": 0.311,
+        "mrr@1": 0.311,
+        "recall@5": 0.517,
+        "precision@5": 0.1034,
+        "ndcg@5": 0.41961,
+        "mrr@5": 0.38728,
+        "recall@10": 0.604,
+        "precision@10": 0.0604,
+        "ndcg@10": 0.44786,
+        "mrr@10": 0.39901
+      },
+      "without_memory": {
+        "recall@1": 0.2755,
+        "precision@1": 0.2755,
+        "ndcg@1": 0.2755,
+        "mrr@1": 0.2755,
+        "recall@5": 0.495,
+        "precision@5": 0.099,
+        "ndcg@5": 0.39236,
+        "mrr@5": 0.35818,
+        "recall@10": 0.589,
+        "precision@10": 0.0589,
+        "ndcg@10": 0.42288,
+        "mrr@10": 0.37086
+      }
+    },
+    "exp+hardneg (w 0.6, as submitted before)": {
+      "all": {
+        "recall@1": 0.289,
+        "precision@1": 0.289,
+        "ndcg@1": 0.289,
+        "mrr@1": 0.289,
+        "recall@5": 0.504,
+        "precision@5": 0.1008,
+        "ndcg@5": 0.40203,
+        "mrr@5": 0.36824,
+        "recall@10": 0.5955,
+        "precision@10": 0.05955,
+        "ndcg@10": 0.43152,
+        "mrr@10": 0.38035
+      },
+      "with_memory": {
+        "recall@1": 0.308,
+        "precision@1": 0.308,
+        "ndcg@1": 0.308,
+        "mrr@1": 0.308,
+        "recall@5": 0.5115,
+        "precision@5": 0.1023,
+        "ndcg@5": 0.41465,
+        "mrr@5": 0.38259,
+        "recall@10": 0.602,
+        "precision@10": 0.0602,
+        "ndcg@10": 0.44383,
+        "mrr@10": 0.39458
+      },
+      "without_memory": {
+        "recall@1": 0.27,
+        "precision@1": 0.27,
+        "ndcg@1": 0.27,
+        "mrr@1": 0.27,
+        "recall@5": 0.4965,
+        "precision@5": 0.0993,
+        "ndcg@5": 0.38942,
+        "mrr@5": 0.35388,
+        "recall@10": 0.589,
+        "precision@10": 0.0589,
+        "ndcg@10": 0.41922,
+        "mrr@10": 0.36612
+      }
+    },
+    "mem first stage": {
+      "all": {
+        "recall@1": 0.2615,
+        "precision@1": 0.2615,
+        "ndcg@1": 0.2615,
+        "mrr@1": 0.2615,
+        "recall@5": 0.47175,
+        "precision@5": 0.09435,
+        "ndcg@5": 0.37174,
+        "mrr@5": 0.33863,
+        "recall@10": 0.56425,
+        "precision@10": 0.05642,
+        "ndcg@10": 0.40182,
+        "mrr@10": 0.35113
+      },
+      "with_memory": {
+        "recall@1": 0.324,
+        "precision@1": 0.324,
+        "ndcg@1": 0.324,
+        "mrr@1": 0.324,
+        "recall@5": 0.5485,
+        "precision@5": 0.1097,
+        "ndcg@5": 0.44319,
+        "mrr@5": 0.40819,
+        "recall@10": 0.6285,
+        "precision@10": 0.06285,
+        "ndcg@10": 0.46931,
+        "mrr@10": 0.41912
+      },
+      "without_memory": {
+        "recall@1": 0.199,
+        "precision@1": 0.199,
+        "ndcg@1": 0.199,
+        "mrr@1": 0.199,
+        "recall@5": 0.395,
+        "precision@5": 0.079,
+        "ndcg@5": 0.30029,
+        "mrr@5": 0.26906,
+        "recall@10": 0.5,
+        "precision@10": 0.05,
+        "ndcg@10": 0.33432,
+        "mrr@10": 0.28315
+      }
+    },
+    "mem+rerank (w 0.5, proxy-tuned)": {
+      "all": {
+        "recall@1": 0.297,
+        "precision@1": 0.297,
+        "ndcg@1": 0.297,
+        "mrr@1": 0.297,
+        "recall@5": 0.5115,
+        "precision@5": 0.1023,
+        "ndcg@5": 0.4108,
+        "mrr@5": 0.37733,
+        "recall@10": 0.6,
+        "precision@10": 0.06,
+        "ndcg@10": 0.43939,
+        "mrr@10": 0.38911
+      },
+      "with_memory": {
+        "recall@1": 0.347,
+        "precision@1": 0.347,
+        "ndcg@1": 0.347,
+        "mrr@1": 0.347,
+        "recall@5": 0.5705,
+        "precision@5": 0.1141,
+        "ndcg@5": 0.46565,
+        "mrr@5": 0.43081,
+        "recall@10": 0.6545,
+        "precision@10": 0.06545,
+        "ndcg@10": 0.49272,
+        "mrr@10": 0.44193
+      },
+      "without_memory": {
+        "recall@1": 0.247,
+        "precision@1": 0.247,
+        "ndcg@1": 0.247,
+        "mrr@1": 0.247,
+        "recall@5": 0.4525,
+        "precision@5": 0.0905,
+        "ndcg@5": 0.35595,
+        "mrr@5": 0.32384,
+        "recall@10": 0.5455,
+        "precision@10": 0.05455,
+        "ndcg@10": 0.38606,
+        "mrr@10": 0.33629
+      }
+    },
+    "mem+hardneg (w 0.4, proxy-tuned)": {
+      "all": {
+        "recall@1": 0.29825,
+        "precision@1": 0.29825,
+        "ndcg@1": 0.29825,
+        "mrr@1": 0.29825,
+        "recall@5": 0.5155,
+        "precision@5": 0.1031,
+        "ndcg@5": 0.41267,
+        "mrr@5": 0.37855,
+        "recall@10": 0.6015,
+        "precision@10": 0.06015,
+        "ndcg@10": 0.44027,
+        "mrr@10": 0.38982
+      },
+      "with_memory": {
+        "recall@1": 0.3555,
+        "precision@1": 0.3555,
+        "ndcg@1": 0.3555,
+        "mrr@1": 0.3555,
+        "recall@5": 0.566,
+        "precision@5": 0.1132,
+        "ndcg@5": 0.46732,
+        "mrr@5": 0.43449,
+        "recall@10": 0.6485,
+        "precision@10": 0.06485,
+        "ndcg@10": 0.49387,
+        "mrr@10": 0.44537
+      },
+      "without_memory": {
+        "recall@1": 0.241,
+        "precision@1": 0.241,
+        "ndcg@1": 0.241,
+        "mrr@1": 0.241,
+        "recall@5": 0.465,
+        "precision@5": 0.093,
+        "ndcg@5": 0.35801,
+        "mrr@5": 0.3226,
+        "recall@10": 0.5545,
+        "precision@10": 0.05545,
+        "ndcg@10": 0.38667,
+        "mrr@10": 0.33426
+      }
+    }
+  },
+  "test_csv": {
+    "exp+rerank": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "5900d189e899d63fc9e69998a3a8c25e6934350a6431de62df4e66b01abc729c"
+    },
+    "exp+hardneg": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "f79df99ad61c2e9336d96a02947df00ea856f443cd16d76ef19417f08725a2ea"
+    },
+    "mem+rerank": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "52cce880dba2cc4713acbe4b66976f30646bc32e6e8149428ad445f6ee449541"
+    },
+    "mem+hardneg": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "a671b51be03576586ee9f44f8a8da222a4d9c25843000b02513b2205e2753617"
+    },
+    "selected": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "52cce880dba2cc4713acbe4b66976f30646bc32e6e8149428ad445f6ee449541"
+    }
+  },
+  "environment": {
+    "python": "3.10.20",
+    "numpy": "2.2.6"
+  }
+}

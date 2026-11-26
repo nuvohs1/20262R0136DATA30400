@@ -62,4 +62,44 @@ bash run_memory.sh 2024320020 8   # candidates (CPU) -> score (GPU) -> eval
 
 ## Results
 
-Pending the AWS run.
+Run on the course AWS notebook. Full record: `artifacts/experiments/memory_proxy.json`.
+
+**Memory bonus (proxy tuning slice, first stage).** Recall@10 rises from 0.5470 without memory to 0.5690 with μ = 1, τ = 3 (selected). Neighbouring settings are close (μ = 1, τ = 2: 0.5678; μ = 0.5, τ = 1: 0.5653), so the choice is not a lucky spike.
+
+**Fusion weight and pair (proxy tuning slice, Recall@10 at the selected w):**
+
+| First stage | rerank (step 4b) | hardneg |
+| --- | --- | --- |
+| exp | 0.5908 (w 0.5) | 0.5853 (w 0.5) |
+| mem | **0.6025** (w 0.5) | 0.6025 (w 0.4) |
+
+The tie goes to `rerank` by the fixed rule, so the selected pair is **mem + rerank**.
+
+**Proxy validation (Recall@10, read once):**
+
+| Ranker | All | Memory half | No-memory half |
+| --- | --- | --- | --- |
+| exp first stage | 0.5610 | 0.5735 | 0.5485 |
+| exp + rerank, w 0.5 (= step 4b as submitted) | 0.5995 | 0.6125 | 0.5865 |
+| exp + hardneg, w 0.6 (as submitted) | 0.5955 | 0.6020 | 0.5890 |
+| exp + hardneg, w 0.5 (proxy-tuned) | 0.5965 | 0.6040 | 0.5890 |
+| mem first stage | 0.5643 | 0.6285 | 0.5000 |
+| **mem + rerank, w 0.5 (selected)** | **0.6000** | **0.6545** | 0.5455 |
+| mem + hardneg, w 0.4 | 0.6015 | 0.6485 | 0.5545 |
+
+**Findings.**
+
+- **The proxy reproduces what Kaggle showed, unlike the old validation.** On the proxy, step 4b is above the hybrid-negative reranker (0.5995 vs 0.5955). The whole gap comes from the memory half (0.6125 vs 0.6020); on the no-memory half the hybrid-negative reranker is slightly better (0.5890 vs 0.5865), as on the old validation. This is the mechanism proposed above: the hybrid-negative reranker overrides the labelled-review signal more often.
+- **The memory bonus moves the ranking toward products with labelled reviews.** For queries whose product has memory, it adds 4.2 points (0.6125 → 0.6545). For queries whose product has none, it costs 4.1 points (0.5865 → 0.5455), because other products with memory are pushed up. At the proxy's 50/50 share the two effects cancel (0.5995 → 0.6000). The real effect on test depends on how many test products have labelled reviews, which this project does not estimate from test data. Test memory is also stronger than in the proxy (5 labelled reviews instead of 2, and 5-review queries).
+- **Tuning slice vs validation.** The memory gain is larger on the tuning slice (+1.2 points after fusion) than on validation (+0.05). The validation memory pool is larger (18,000 vs 14,000 products), so more non-matching products can receive a bonus. The test pool (20,000) is larger still. This is a reason for caution.
+- **Reproducibility check.** The `exp + rerank` test file, rebuilt from scratch on this run, equals the step-4b submission in 19,857 of 19,858 rows. The remaining row swaps two adjacent items whose scores are tied to within floating-point rounding.
+
+On test, the top 1 is a product with labelled reviews for 67.7% of queries with mem + rerank, against 55.0% for step 4b.
+
+## Cross-encoder ensemble (added after the first proxy run)
+
+`rerank` and `hardneg` were trained on different negatives, and the proxy shows their strengths differ: `rerank` is better on the memory half, and `hardneg` on the no-memory half. Averaging the two scores, `(z(rerank) + z(hardneg)) / 2` within each query's candidates, needs no extra training and is more diverse than seed variants of one model.
+
+The ensemble is added to `run_memory_eval.py` as a third cross-encoder (`ens`) with the same rule. w is chosen on the proxy tuning slice, and a pair is selected by proxy tuning-slice Recall@10. Ties go to the simpler pair (`rerank`, then `hardneg`, then `ens`). Proxy validation is reported once.
+
+Results: pending the AWS run (step 4g `eval` only, CPU, about a minute).

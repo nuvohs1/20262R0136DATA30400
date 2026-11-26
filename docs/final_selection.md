@@ -19,16 +19,18 @@ From `python scripts/evaluate_rankings.py` (`artifacts/experiments/ranking_metri
 
 ## Decision (provisional)
 
-**Current final file: step 4b, `outputs/rerank/submission/2024320020_final.csv`.** This is pending the test-like proxy validation (`docs/memory_proxy.md`).
+**By the proxy rule fixed in advance, the selected pipeline is memory first stage + step-4b cross-encoder (w 0.5): `outputs/memory/submission/2024320020_final.csv`** (`run_memory.sh`).
 
-- **Why the old validation was not enough.** The hybrid-negative reranker had the highest validation Recall@10 (0.7145) but scored 0.75929 on Kaggle, a full point below step 4b. The old validation cannot represent test products that have labelled training reviews, which are about half of the test set, so it is not a reliable guide between rerankers. Its rule is replaced by the proxy validation, which was fixed in advance (`docs/memory_proxy.md`).
-- **How the final file will be chosen.** Among the proxy candidates (first stage with or without the memory bonus × the two cross-encoders), by proxy tuning-slice Recall@10. Proxy validation is reported once.
+- **Proxy evidence.** Proxy tuning-slice Recall@10 is 0.6025, against 0.5908 for step 4b's pipeline. Proxy validation is 0.6000 vs 0.5995, a tie: +4.2 points for products with labelled reviews, −4.1 for products without (`docs/memory_proxy.md`).
+- **Why the old validation was replaced.** The hybrid-negative reranker had the best old-validation Recall@10 (0.7145) but scored 0.75929 on Kaggle, below step 4b (0.76916). The proxy reproduces that ordering; the old validation did not.
+- **Step 4b remains the safe alternative** (Kaggle 0.76916). Its pipeline is identical to `exp + rerank` on the proxy.
+- **Still open.** The cross-encoder ensemble (`ens`) is evaluated with the same rule, and the selection will be updated if it wins on the proxy tuning slice.
 - **No overfitting to the leaderboard.** No weight, epoch, threshold or proxy setting is fitted to Kaggle scores or test data. The Kaggle result was used only to notice that the old validation did not match test.
 - **Self-training is excluded from the final choice.** It used the test queries' reviews (without labels) as extra training data. That is transductive learning, and the final model should not be trained on test inputs.
 
 ## Kaggle final submissions
 
-To be confirmed after the proxy run. Until then: step 4b (0.76916).
+The student chooses the final Kaggle submissions. The candidates are the proxy-selected file and step 4b (0.76916).
 
 ## Format check
 
