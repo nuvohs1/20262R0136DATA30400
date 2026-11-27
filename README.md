@@ -9,7 +9,7 @@ The improved BM25 (BM25F, plural folding, and supervised Robertson–Spärck Jon
 ## Reproduce the final submission
 
 ```bash
-bash run_all.sh quick 2024320020 8   # verified model-B checkpoints -> test inference only (GPU, ~40 min)
+bash run_all.sh quick 2024320020 8   # verified model-B checkpoints -> test inference only (GPU, ~2.5 h)
 bash run_all.sh full  2024320020 8   # retrain everything from bert-base-uncased (GPU, ~10-12 h)
 ```
 

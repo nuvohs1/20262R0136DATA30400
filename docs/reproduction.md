@@ -23,8 +23,8 @@ Every model used for test (model B) was trained on all 20,000 training queries a
 ## Quick mode: inference with the trained checkpoints
 
 ```bash
-MODELS_URL="<Google Drive link below>" bash run_all.sh quick 2024320020 8
-# or download models_2024320020.zip by hand into the project root, then: bash run_all.sh quick
+bash run_all.sh quick 2024320020 8   # downloads the model pack from the link below (needs gdown)
+# or download models_2024320020.zip by hand into the project root first; it is then used as is
 ```
 
 **Model pack.** `models_2024320020.zip` (about 1.3 GB) contains three model-B checkpoints:
@@ -37,7 +37,7 @@ Each checkpoint carries a `provenance.json` that records the base model and revi
 
 **Verification.** `scripts/fetch_models.py` extracts only the paths listed in the committed `artifacts/model_manifest.json`. It refuses the archive if the archive or any file does not match its SHA-256.
 
-**Steps** (about 30–40 minutes on one GPU):
+**Steps** (about 2.5 hours on one NVIDIA L4; scoring 992,900 pairs takes about one hour per cross-encoder):
 
 1. Encode the test reviews and the catalog with the LTR model.
 2. Build the stage-1 candidates. α comes from `artifacts/experiments/ltr_bert.json`.
@@ -46,7 +46,9 @@ Each checkpoint carries a `provenance.json` that records the base model and revi
 
 `scripts/make_final.py` compares the result with the SHA-256 of the submitted file and reports whether they match.
 
-Model link: *to be added after upload*.
+**Model link:** [models_2024320020.zip](https://drive.google.com/file/d/1BM16spl36PTRRuj8Tl8XxWP2iO6fwucc/view?usp=sharing) (Google Drive, anyone with the link can view). Archive SHA-256: `d5322179e97b4db89cd4def4ee65964f1e952fa07f6358bcb3844776c08c93ab`.
+
+**Checked run.** On 2026-11-27 the quick mode was run in an empty copy of the repository on the course AWS SageMaker notebook (NVIDIA L4, Python 3.10.20, NumPy 2.2.6). It verified all 16 files of the pack and wrote a file with the reference SHA-256 below, byte-identical to the submitted file.
 
 ## Full mode: retrain everything
 

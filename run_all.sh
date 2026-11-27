@@ -4,13 +4,14 @@
 #   quick : download the three verified model-B checkpoints (scripts/fetch_models.py), then run
 #           test inference only: test embeddings, stage-1 candidates, two cross-encoder scores,
 #           final file. Settings (alpha, w) come from the committed records in artifacts/.
-#           GPU needed for encoding/scoring (about 30-40 minutes on one GPU).
+#           GPU needed for encoding/scoring (about 2.5 hours on one NVIDIA L4).
 #   full  : retrain everything from bert-base-uncased (LTR model A/B, both cross-encoders A/B),
 #           re-select every setting on the tuning slice / proxy tuning slice, final file.
 #           GPU, about 10-12 hours.
 #
 # Usage: bash run_all.sh [quick|full] [STUDENT_ID] [WORKERS]
-#        MODELS_URL=<link> bash run_all.sh quick     # or put models_<id>.zip in the project root
+#        The model pack is downloaded from MODELS_URL (default: the submitted Google Drive link);
+#        or put models_<id>.zip in the project root.
 # Output: outputs/final/<STUDENT_ID>_final.csv (19,858 rows, 10 distinct catalog IDs per row).
 # Every random operation uses seed 42; finished steps are skipped on re-runs.
 set -euo pipefail
@@ -19,6 +20,7 @@ PYTHON_BIN="${PYTHON_BIN:-python}"
 MODE="${1:-quick}"
 STUDENT_ID="${2:-2024320020}"
 WORKERS="${3:-8}"
+MODELS_URL="${MODELS_URL:-https://drive.google.com/file/d/1BM16spl36PTRRuj8Tl8XxWP2iO6fwucc/view?usp=sharing}"
 export PYTHON_BIN
 
 echo "== Data check and unit tests =="
@@ -30,7 +32,7 @@ case "$MODE" in
     echo "== Model-B checkpoints (verified against artifacts/model_manifest.json) =="
     if [ ! -f outputs/hardneg/ce-full/checkpoint/provenance.json ] || [ ! -f outputs/rerank/ce-full/checkpoint/provenance.json ] \
        || [ ! -f outputs/ltr/bert-ltr-full/checkpoint/provenance.json ]; then
-      "$PYTHON_BIN" scripts/fetch_models.py ${MODELS_URL:+--url "$MODELS_URL"}
+      "$PYTHON_BIN" scripts/fetch_models.py --url "$MODELS_URL"
     fi
     echo "== Test embeddings from LTR model B (GPU) =="
     [ -f outputs/dense/bert-ltr-full/test_reviews.npy ] || "$PYTHON_BIN" scripts/encode_dense.py \

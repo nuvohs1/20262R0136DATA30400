@@ -1,0 +1,75 @@
+{
+  "archive": "models_2024320020.zip",
+  "archive_sha256": "d5322179e97b4db89cd4def4ee65964f1e952fa07f6358bcb3844776c08c93ab",
+  "checkpoints": [
+    "outputs/ltr/bert-ltr-full/checkpoint",
+    "outputs/rerank/ce-full/checkpoint",
+    "outputs/hardneg/ce-full/checkpoint"
+  ],
+  "files": {
+    "outputs/hardneg/ce-full/checkpoint/config.json": {
+      "sha256": "955ca0c1ccb16baf2fad3b92390f57da725dcb32572c93b8936946e767dddadc",
+      "bytes": 844
+    },
+    "outputs/hardneg/ce-full/checkpoint/model.safetensors": {
+      "sha256": "0f9522d4a8a657bafa72c691f2e1bd55c23faecb199d13917014c73e5eaa954d",
+      "bytes": 437955548
+    },
+    "outputs/hardneg/ce-full/checkpoint/provenance.json": {
+      "sha256": "9558046de057a05e6f56c2f8fe41d79dae2b504d86a8d27476cb8954ccec25b0",
+      "bytes": 719
+    },
+    "outputs/hardneg/ce-full/checkpoint/tokenizer.json": {
+      "sha256": "8406160b692103eb0af606ffd0d7963678491aa8719a131fd165927e64eb5416",
+      "bytes": 711493
+    },
+    "outputs/hardneg/ce-full/checkpoint/tokenizer_config.json": {
+      "sha256": "e1c2a61a99bda00f6c55303a210b30e2f92dcf8b555e215812e2eb583e177ffd",
+      "bytes": 351
+    },
+    "outputs/ltr/bert-ltr-full/checkpoint/.ipynb_checkpoints/tokenizer-checkpoint.json": {
+      "sha256": "851ca67100d372ca3ae031a6abd168f53489eebfd7d89523f35c5c9b4d372c3c",
+      "bytes": 711649
+    },
+    "outputs/ltr/bert-ltr-full/checkpoint/config.json": {
+      "sha256": "df52e357acc71cccfbf75f2d4083c1c1e564d2abafdcf22dbfe57debb3bc8441",
+      "bytes": 746
+    },
+    "outputs/ltr/bert-ltr-full/checkpoint/model.safetensors": {
+      "sha256": "c4d61292b2194233d3cd6b3e69f6a546b7a364611d5a87325cca2b7f24ea26ae",
+      "bytes": 437951304
+    },
+    "outputs/ltr/bert-ltr-full/checkpoint/provenance.json": {
+      "sha256": "1dda99b1cbc4df54ae92199c410739b2db7986dc4ea0643fd5f06331298ea1c2",
+      "bytes": 632
+    },
+    "outputs/ltr/bert-ltr-full/checkpoint/tokenizer.json": {
+      "sha256": "851ca67100d372ca3ae031a6abd168f53489eebfd7d89523f35c5c9b4d372c3c",
+      "bytes": 711649
+    },
+    "outputs/ltr/bert-ltr-full/checkpoint/tokenizer_config.json": {
+      "sha256": "e1c2a61a99bda00f6c55303a210b30e2f92dcf8b555e215812e2eb583e177ffd",
+      "bytes": 351
+    },
+    "outputs/rerank/ce-full/checkpoint/config.json": {
+      "sha256": "955ca0c1ccb16baf2fad3b92390f57da725dcb32572c93b8936946e767dddadc",
+      "bytes": 844
+    },
+    "outputs/rerank/ce-full/checkpoint/model.safetensors": {
+      "sha256": "863fbd5a14dd4d5597010797776696ff8a8623fbf5039ca2cf530e90292873b0",
+      "bytes": 437955548
+    },
+    "outputs/rerank/ce-full/checkpoint/provenance.json": {
+      "sha256": "c74c14f556ec0eb8762b62a04b56e7bd43dc76aa7ba255e1adffcf404109e34d",
+      "bytes": 654
+    },
+    "outputs/rerank/ce-full/checkpoint/tokenizer.json": {
+      "sha256": "8406160b692103eb0af606ffd0d7963678491aa8719a131fd165927e64eb5416",
+      "bytes": 711493
+    },
+    "outputs/rerank/ce-full/checkpoint/tokenizer_config.json": {
+      "sha256": "e1c2a61a99bda00f6c55303a210b30e2f92dcf8b555e215812e2eb583e177ffd",
+      "bytes": 351
+    }
+  }
+}
