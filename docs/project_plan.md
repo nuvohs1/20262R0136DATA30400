@@ -4,7 +4,7 @@
 
 - Deadline: December 19, 2026, 23:59 KST.
 - Kaggle: `studentID_final.csv`, containing `query_id,item_id_1,...,item_id_10`; 19,858 rows in the supplied test order; 10 distinct valid catalog item IDs per row, ranked by likelihood.
-- Set the Kaggle team name to the assigned User ID in `User_IDs.xlsx`. The student ID and assigned User ID have not been supplied here.
+- Set the Kaggle team name to the assigned User ID in `User_IDs.xlsx`. Student ID: 2024320020.
 - LMS: an English report PDF of at most 8 pages using the linked course template, plus the GitHub repository URL.
 - Code: reproduce the best Kaggle submission without manual code edits; include complete README instructions, fixed random seeds, and a `.sh` runner if the final pipeline requires multiple steps. Document downloads for large intermediate artifacts or checkpoints.
 - Grading: performance 50%, report quality 50%; at least 10 GitHub commits for 2% extra credit. Commit meaningful completed milestones before the deadline.
@@ -28,7 +28,7 @@
 
 Report actual Kaggle Recall@10 for all three required approaches in an experimental table. Local validation scores supplement those results and do not replace them. Do not invent scores or successful runs.
 
-The report must explain the final matching method and design rationale; include a figure of the full prediction framework; describe preprocessing, use of all five reviews, training objectives, and relevant training strategies; and analyze at least one successful and one failed matching example. Report discussion will stay focused on retrieval evidence and errors, following the user's explicit scope instruction.
+The report must explain the final matching method and design rationale; include a figure of the full prediction framework; describe preprocessing, use of all five reviews, training objectives, and relevant training strategies; and analyze at least one successful and one failed matching example.
 
 ## Data and model restrictions
 
@@ -54,11 +54,11 @@ The report must explain the final matching method and design rationale; include 
 2. Shared text preprocessing and submission validation (implemented and checked).
 3. BM25 baseline and full-catalog validation (complete: local Recall@10 36.25%; user-reported Kaggle score 0.38120).
 4. BM25 field weighting, review aggregation, and query comparisons (complete: seven configurations; original baseline retained).
-   - BM25 v2 (complete: BM25F k1 2.5 / b 1.0, plural folding, supervised RSJ query weights; held-out local Recall@10 57.83%; Kaggle 0.57538. With labelled-review expansion: Kaggle 0.60761, current best).
+   - BM25 v2 (complete: BM25F k1 2.5 / b 1.0, plural folding, supervised RSJ query weights; held-out local Recall@10 57.83%; Kaggle 0.57538. With labelled-review expansion: Kaggle 0.60761).
 5. Eligible dense model selection and embedding pipeline (bert-base-uncased, revision pinned, allow-list enforced in code).
 6. Dense baseline validation and Kaggle prediction (complete locally: zero-shot BERT 1.70% local Recall@10; hybrid selects α = 0; Kaggle 0.02306).
 7. Learning-to-rank training with BM25 hard negatives (complete locally on AWS L4: dense 45.67%, BM25 v2 + LTR BERT hybrid 66.73% local Recall@10; Kaggle dense 0.56058, hybrid 0.72333).
-8. Multi-stage ranking with a BERT cross-encoder reranker (complete on AWS L4: top-50 candidates, fused w = 0.5; local Recall@10 66.73% → 70.73%, NDCG@10 0.4883 → 0.5344; Kaggle 0.76916 = current best).
+8. Multi-stage ranking with a BERT cross-encoder reranker (complete on AWS L4: top-50 candidates, fused w = 0.5; local Recall@10 66.73% → 70.73%, NDCG@10 0.4883 → 0.5344; Kaggle 0.76916).
 9. Self-training with pseudo-labels for the cross-encoder (complete on AWS L4: threshold margin 1.65 at 0.9 tuning precision, validation pseudo-label precision 0.915; local Recall@10 70.73% → 70.75% (no change), Recall@1 37.68% → 38.45%; Kaggle 0.76936 vs 0.76916, within noise; not adopted on local evidence).
 10. Category labels as auxiliary information: label-GCN classifier trained multi-task on queries and products, category agreement as a third reranking score (complete: validation query accuracy 0.509@1 / 0.795@5 over 500 leaves, but every β > 0 lowers tuning-slice Recall@10, so β = 0 is selected and the ranking equals step 4b; documented negative result).
 11. ANN with an IVF index for dense search (complete: nprobe 8 selected on the tuning slice scores 3.2% of the catalog, 6.0× faster than exact, ANN recall@10 0.963, validation Recall@10 0.4400 vs 0.4567 exact; efficiency study only, submission unchanged; docs/ann_ivf.md). Also: Precision@N, Recall@N, NDCG@N evaluation (implemented: docs/evaluation_metrics.md).
@@ -68,5 +68,5 @@ The report must explain the final matching method and design rationale; include 
 15. Augmented cross-encoder (shared review budget, review augmentation, mixed negatives) and a three-model ensemble (complete: validation fused R@10 0.7147, cross-encoder alone 0.6765; proxy validation exp + ens3 0.6133 vs exp + ens 0.6043; docs/augmented_cross_encoder.md). Learned listwise fusion vs ens3 by 5-fold CV on the proxy tuning slice: ens3 kept (0.6040 vs 0.6028; docs/learned_fusion.md). Kaggle: exp + ens3 0.77127, exp + aug 0.76906, both below exp + ens 0.77188 → final file unchanged (proxy favours the augmented model: 3-review queries).
 16. Case studies, report, and final reproduction documentation.
 
-These are substantive checkpoints, not a reason to create empty or artificial commits. Steps may be adjusted based on measured results. Student ID: 2024320020. Course template, Kaggle competition URL, assigned User ID, and compute resources for neural models still need to be confirmed before their dependent tasks. The student handles Kaggle uploads.
+These are substantive checkpoints, not a reason to create empty or artificial commits. Steps may be adjusted based on measured results. GPU steps ran on the course AWS SageMaker notebook (NVIDIA L4).
 

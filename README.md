@@ -13,48 +13,77 @@ Given 5 reviews of a product, find that product among the 50,000 products in the
 
 ## How to run
 
-The command below reproduces the submitted file exactly from the trained models. We tested it from a fresh clone on an AWS SageMaker notebook with an NVIDIA L4 GPU. The output was byte-identical to the submitted file.
+`bash run_all.sh quick` rebuilds the submitted file from the trained models. It was verified on the course setup below, where a copy with no earlier outputs produced a file byte-identical to the submission.
 
-**1. Requirements**
+| | Verified environment |
+| --- | --- |
+| Machine | AWS SageMaker notebook `ml.g6.2xlarge` (NVIDIA L4, 24 GB) |
+| Kernel | `conda_pytorch` |
+| Python | 3.10.20 |
+| Packages | NumPy 2.2.6, PyTorch 2.10.0+cu128, Transformers 5.20.2 |
 
-- Linux or macOS with `bash`. On Windows, use WSL.
-- An NVIDIA GPU with CUDA.
-- Python 3.10 or later.
-- About 5 GB of free disk space.
+Any Linux machine with an NVIDIA GPU, CUDA and `bash` should also work. A GPU is required. Disk space needed: about 5 GB.
+
+**1. Get the code and the course data.** The four data files are not in the repository, so copy them into `project_release/`.
 
 ```bash
-pip install -r requirements.txt     # numpy, torch, transformers, gdown
+git clone https://github.com/nuvohs1/20262R0136DATA30400.git
+cd 20262R0136DATA30400
+# copy catalog.json, train_gold.json, test_queries.json and category_taxonomy.txt into project_release/
 ```
 
-**2. Course data.** Copy these four files into `project_release/`. They are not in the repository.
+**2. Install packages and check the GPU.**
 
-```text
-project_release/catalog.json
-project_release/train_gold.json
-project_release/test_queries.json
-project_release/category_taxonomy.txt
+```bash
+python -m pip install -r requirements.txt
+python -c "import torch; print(torch.__version__, torch.cuda.is_available())"   # must print True
 ```
 
-**3. Run**
+`requirements.txt` pins NumPy and Transformers. It leaves PyTorch unpinned so the CUDA build already on the machine is kept.
+
+**3. Run.**
 
 ```bash
 bash run_all.sh quick
 ```
 
-This takes about 2.5 hours on one L4, and it runs these steps in order:
+In a SageMaker notebook cell (kernel `conda_pytorch`), run the same steps through the kernel's Python:
 
-1. Checks the data and runs the unit tests.
-2. Downloads the model zip from the Google Drive link above and checks the SHA-256 of every file.
+```python
+import os, sys
+os.environ["PYTHON_BIN"] = sys.executable
+!{sys.executable} -m pip install -r requirements.txt
+!{sys.executable} -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+!bash run_all.sh quick 2>&1 | tee quick_run.log
+```
+
+The run takes about 2.5 hours on one L4. It does the following:
+
+1. Checks the data files and runs the unit tests.
+2. Downloads the trained models (1.3 GB) from the Google Drive link above and checks the SHA-256 of every file.
 3. Encodes the catalog and the test reviews with the fine-tuned BERT.
-4. Builds 50 candidates per query (BM25 + BERT).
+4. Builds 50 candidates per test query (BM25 + BERT).
 5. Scores the candidates with the two cross-encoders.
-6. Writes `outputs/final/2024320020_final.csv` and checks its format.
+6. Writes `outputs/final/2024320020_final.csv`, checks its format, and compares it with the submitted file.
 
-At the end the script prints `Matches the submitted file (Kaggle 0.77188).` when the result has the same SHA-256 as the submitted file.
+A successful run ends with:
 
-You can also download the model zip yourself. Put `models_2024320020.zip` in the project root before running, and the script will use it instead of downloading. If `python` is not the right interpreter, set it: `PYTHON_BIN=python3 bash run_all.sh quick`.
+```text
+Matches the submitted file (Kaggle 0.77188).
+...
+Done: outputs/final/2024320020_final.csv is identical to the submitted file.
+```
 
-**Retraining from scratch (optional).** `bash run_all.sh full` retrains every model from `bert-base-uncased` and selects every setting again. It takes about 12 hours on one L4. GPU training is not bit-exact across hardware, so this mode reproduces the method and the scores closely but not byte for byte. Details: [docs/reproduction.md](docs/reproduction.md).
+If the file differs from the submission, the script stops with `FAILED: ...` instead.
+
+**Notes**
+
+- **Manual model download.** You can download `models_2024320020.zip` from the link yourself and put it in the project root. The script then uses that file instead of downloading.
+- **Different interpreter.** If the GPU-enabled Python is not called `python`, set it: `PYTHON_BIN=python3 bash run_all.sh quick`.
+- **Retraining from scratch (optional).** `bash run_all.sh full` retrains every model from `bert-base-uncased` and selects every setting again. It takes about 12 hours on one L4.
+  - Run it in a fresh clone, not in a folder where quick mode has already run. The script refuses to continue in such a folder.
+  - GPU training is not bit-exact across hardware, so full mode gives close scores but not the identical file.
+  - More detail: [docs/reproduction.md](docs/reproduction.md).
 
 ## Method
 
@@ -123,7 +152,10 @@ Precision, NDCG and MRR at 1/5/10 for every step are in [docs/evaluation_metrics
 
 - **Data.** Only the course files are used: no external data, no web crawling and no LLM APIs. Review text never leaves the machine.
 - **Models.** Only `bert-base-uncased` at a pinned revision. `src/review_retrieval/model_policy.py` refuses any other checkpoint ([docs/model_eligibility.md](docs/model_eligibility.md)).
-- **Test data.** Test queries are used only for the final prediction. Nothing is trained, tuned or estimated on them.
+- **Test data.** Test queries are used only at prediction time: every model is trained on `train_gold.json`, and every weight and epoch is chosen on training queries. Two exceptions are recorded:
+  - **Self-training.** It trained on pseudo-labelled test reviews. It is not in the final file.
+  - **Overlap analysis.** BM25 test predictions suggested that about half of the test products have labelled training reviews. This motivated the review expansion, which is in the final pipeline. Its settings were fixed on the tuning slice, and it was kept because it raised the Kaggle score (0.57538 → 0.60761).
+- **Choosing the submission.** Proxy validation narrowed the candidates. The final file was then picked by public Kaggle score among a few files that were all fixed before submission. Every Kaggle score is reported here, including the lower ones ([docs/final_selection.md](docs/final_selection.md)).
 - **Reproducibility.** Every random step uses seed 42, and the model zip is verified against `artifacts/model_manifest.json`.
 - **Repository contents.** Data, outputs and checkpoints are in `.gitignore`.
 

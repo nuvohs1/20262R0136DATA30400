@@ -16,14 +16,14 @@ Every model used for test (model B) was trained on all 20,000 training queries a
 
 ## Requirements
 
-- **Software.** Python 3.10+ and `pip install -r requirements.txt` (NumPy, torch, transformers, gdown). Tested with Python 3.10.20, NumPy 2.2.6, torch 2.10.0+cu128 and transformers 5.20.2.
-- **Data.** The course files go in `project_release/`: `catalog.json`, `train_gold.json` and `test_queries.json`. `scripts/prepare_data.py` checks their fingerprints.
+- **Software.** Python 3.10+ and `python -m pip install -r requirements.txt` (NumPy and Transformers pinned; PyTorch keeps the installed CUDA build). Tested with Python 3.10.20, NumPy 2.2.6, torch 2.10.0+cu128 and transformers 5.20.2.
+- **Data.** The course files go in `project_release/`: `catalog.json`, `train_gold.json`, `test_queries.json` and `category_taxonomy.txt`. `scripts/prepare_data.py` checks their fingerprints.
 - **GPU.** One CUDA GPU is needed for encoding and cross-encoder scoring. The reference runs used an NVIDIA L4 on the course AWS SageMaker notebook.
 
 ## Quick mode: inference with the trained checkpoints
 
 ```bash
-bash run_all.sh quick 2024320020 8   # downloads the model pack from the link below (needs gdown)
+bash run_all.sh quick 2024320020 8   # downloads the model pack from the link below
 # or download models_2024320020.zip by hand into the project root first; it is then used as is
 ```
 
@@ -44,7 +44,7 @@ Each checkpoint carries a `provenance.json` that records the base model and revi
 3. Score the candidates with both cross-encoders.
 4. Fuse the scores with w from `artifacts/experiments/memory_proxy.json`.
 
-`scripts/make_final.py` compares the result with the SHA-256 of the submitted file and reports whether they match.
+`scripts/make_final.py` compares the result with the SHA-256 of the submitted file. In quick mode a mismatch is an error (`FAILED: ...`, exit code 1). A successful run ends with `Done: outputs/final/2024320020_final.csv is identical to the submitted file.`
 
 **Model link:** [models_2024320020.zip](https://drive.google.com/file/d/1BM16spl36PTRRuj8Tl8XxWP2iO6fwucc/view?usp=sharing) (Google Drive, anyone with the link can view). Archive SHA-256: `d5322179e97b4db89cd4def4ee65964f1e952fa07f6358bcb3844776c08c93ab`.
 
@@ -55,6 +55,8 @@ Each checkpoint carries a `provenance.json` that records the base model and revi
 ```bash
 bash run_all.sh full 2024320020 8
 ```
+
+Run full mode in a fresh clone. A folder where quick mode has run holds the downloaded models and test-only caches, and `run_all.sh full` refuses to start there. In full mode the script prints whether the new file is identical to the submitted one, but it does not fail on a difference.
 
 **Steps:**
 

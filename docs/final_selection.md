@@ -1,8 +1,15 @@
 # Final submission selection
 
-## Rule
+## How the final file was chosen
 
-The final file is chosen by **local validation** (4,000 held-out development queries, full catalog, evaluated once per method), not by the Kaggle public leaderboard. The project metric is Recall@10. If two methods tie on Recall@10, the simpler pipeline wins, because it is cheaper and less fragile to reproduce.
+| | What was used |
+| --- | --- |
+| Training data of the final models | `train_gold.json` only. Model A uses 12,000 development queries; model B, used for test, uses all 20,000 queries. |
+| Settings | α = 3 and every epoch were chosen on the tuning slice. The fusion weight w = 0.5 was chosen on the proxy tuning slice. |
+| Candidate files | Local validation was used up to the single cross-encoder (step 4b). After that, validation stopped tracking Kaggle, because validation products never have labelled reviews. Candidates were then compared on the proxy validation (`docs/memory_proxy.md`). |
+| Final pick | Among a few files fixed before submission, the one with the highest public Kaggle score: `exp + ens`, 0.77188. This file was not the top proxy-validation entry (`exp + ens3` was). |
+
+Every Kaggle score is recorded below, including the lower ones. No setting was fitted to test inputs or to Kaggle scores.
 
 ## Candidates (local validation)
 
@@ -32,7 +39,6 @@ From `python scripts/evaluate_rankings.py` (`artifacts/experiments/ranking_metri
 
 How the choice was made, stated plainly:
 
-- **Settings come from training data only.** w = 0.5 was chosen on the proxy tuning slice; α = 3 and every training setting on the tuning slice. Nothing was fitted to test inputs or Kaggle scores.
 - **The proxy rule picked mem + ens.** Its tuning-slice lead came from the memory bonus, which gained on the tuning slice but not on proxy validation, where exp + ens was best. The project guideline leaves the final Kaggle choice to the student, so both files were submitted; Kaggle agreed with proxy validation, and exp + ens was kept.
 - **Leaderboard use is limited to a choice among a few files that were all fixed in advance.** Every Kaggle score is recorded in these docs, including the lower ones. The 0.3-point gain of exp + ens over step 4b is in line with the 0.5-point proxy-validation gain, so it is not a leaderboard artefact.
 - **Augmented cross-encoder.** It improved proxy validation but not Kaggle. The proxy's 3-review queries match the model's 3- and 4-review training subsets, so it favours this model (`docs/augmented_cross_encoder.md`). A learned fusion did not beat the plain average in cross-validation (`docs/learned_fusion.md`). Neither changes the final file.

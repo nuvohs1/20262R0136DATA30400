@@ -45,6 +45,8 @@ def main():
                         help="Committed record with the SHA-256 of the submitted file")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "outputs/final")
     parser.add_argument("--student-id", default="2024320020")
+    parser.add_argument("--require-match", action="store_true",
+                        help="Exit with an error if the file differs from the submitted one (quick mode)")
     args = parser.parse_args()
     if not args.student_id.isalnum():
         parser.error("--student-id must be alphanumeric")
@@ -76,6 +78,8 @@ def main():
         print("Matches the submitted file (Kaggle 0.77188)." if same else
               "SHA-256 differs from the submitted file. GPU kernels can reorder near-tied scores; "
               "the row differences are listed by scripts/compare_submissions.py.", flush=True)
+    if args.require_match and not same:
+        raise SystemExit("FAILED: the reproduced file is not identical to the submitted file.")
 
 
 if __name__ == "__main__":

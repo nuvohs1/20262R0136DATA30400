@@ -1,6 +1,7 @@
-# Everything needed for `bash run_all.sh quick` (and full).
-# Tested with Python 3.10.20, numpy 2.2.6, torch 2.10.0+cu128, transformers 5.20.2.
-numpy
+# Packages for `bash run_all.sh` (quick and full), pinned to the verified run.
+# Verified: AWS SageMaker ml.g6.2xlarge (NVIDIA L4), conda_pytorch kernel, Python 3.10.20.
+numpy==2.2.6
+transformers==5.20.2
+# PyTorch is not pinned here so the CUDA build already on the GPU machine is kept.
+# Verified with torch 2.10.0+cu128 (preinstalled in the SageMaker conda_pytorch environment).
 torch>=2.1
-transformers>=4.40
-gdown

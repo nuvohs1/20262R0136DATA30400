@@ -34,6 +34,7 @@ case "$MODE" in
        || [ ! -f outputs/ltr/bert-ltr-full/checkpoint/provenance.json ]; then
       "$PYTHON_BIN" scripts/fetch_models.py --url "$MODELS_URL"
     fi
+    touch outputs/.quick_mode  # full mode must not reuse these downloaded models and test-only caches
     echo "== Test embeddings from LTR model B (GPU) =="
     [ -f outputs/dense/bert-ltr-full/test_reviews.npy ] || "$PYTHON_BIN" scripts/encode_dense.py \
       --model outputs/ltr/bert-ltr-full/checkpoint --tag bert-ltr-full --parts catalog,test
@@ -46,8 +47,13 @@ case "$MODE" in
         --checkpoint outputs/$model/ce-full/checkpoint --candidates outputs/rerank/candidates_test.json
     done
     SELECTION=artifacts/experiments/memory_proxy.json
+    MATCH=--require-match
     ;;
   full)
+    if [ -f outputs/.quick_mode ]; then
+      echo "This folder already holds a quick-mode run. Run full mode in a fresh clone (or delete outputs/ first)."
+      exit 1
+    fi
     bash run_gpu.sh ltr-dev
     bash run_gpu.sh ltr-full
     bash run_dense_eval.sh "$STUDENT_ID" "$WORKERS" ltr       # alpha on the tuning slice
@@ -62,6 +68,10 @@ case "$MODE" in
 esac
 
 echo "== Final file =="
-"$PYTHON_BIN" scripts/make_final.py --student-id "$STUDENT_ID" --selection "$SELECTION"
+"$PYTHON_BIN" scripts/make_final.py --student-id "$STUDENT_ID" --selection "$SELECTION" ${MATCH:-}
 "$PYTHON_BIN" scripts/validate_submission.py "outputs/final/${STUDENT_ID}_final.csv"
-echo "Done: outputs/final/${STUDENT_ID}_final.csv"
+if [ "$MODE" = quick ]; then
+  echo "Done: outputs/final/${STUDENT_ID}_final.csv is identical to the submitted file."
+else
+  echo "Done: outputs/final/${STUDENT_ID}_final.csv (format checked; see the SHA-256 line above for whether it is identical)."
+fi
