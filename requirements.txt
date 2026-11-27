@@ -1,7 +1,7 @@
 # Packages for `bash run_all.sh` (quick and full), pinned to the verified run.
 # Verified: AWS SageMaker ml.g6.2xlarge (NVIDIA L4), conda_pytorch kernel, Python 3.10.20.
+# The byte-identical file needs these versions. With torch 2.12.1 the output was near-identical
+# (19,849 of 19,858 rows with the same top-10 set), not identical.
 numpy==2.2.6
+torch==2.10.0          # SageMaker conda_pytorch already has 2.10.0+cu128, which satisfies this pin
 transformers==5.20.2
-# PyTorch is not pinned here so the CUDA build already on the GPU machine is kept.
-# Verified with torch 2.10.0+cu128 (preinstalled in the SageMaker conda_pytorch environment).
-torch>=2.1

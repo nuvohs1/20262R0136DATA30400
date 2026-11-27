@@ -16,7 +16,7 @@ Every model used for test (model B) was trained on all 20,000 training queries a
 
 ## Requirements
 
-- **Software.** Python 3.10+ and `python -m pip install -r requirements.txt` (NumPy and Transformers pinned; PyTorch keeps the installed CUDA build). Tested with Python 3.10.20, NumPy 2.2.6, torch 2.10.0+cu128 and transformers 5.20.2.
+- **Software.** Python 3.10 and `python -m pip install -r requirements.txt`, which pins NumPy 2.2.6, torch 2.10.0 and transformers 5.20.2. The verified run used Python 3.10.20 and torch 2.10.0+cu128 (SageMaker `conda_pytorch`). `run_all.sh` prints the versions it uses and warns if they differ.
 - **Data.** The course files go in `project_release/`: `catalog.json`, `train_gold.json`, `test_queries.json` and `category_taxonomy.txt`. `scripts/prepare_data.py` checks their fingerprints.
 - **GPU.** One CUDA GPU is needed for encoding and cross-encoder scoring. The reference runs used an NVIDIA L4 on the course AWS SageMaker notebook.
 
@@ -49,6 +49,8 @@ Each checkpoint carries a `provenance.json` that records the base model and revi
 **Model link:** [models_2024320020.zip](https://drive.google.com/file/d/1BM16spl36PTRRuj8Tl8XxWP2iO6fwucc/view?usp=sharing) (Google Drive, anyone with the link can view). Archive SHA-256: `d5322179e97b4db89cd4def4ee65964f1e952fa07f6358bcb3844776c08c93ab`.
 
 **Checked run.** On 2026-11-27 the quick mode was run in an empty copy of the repository on the course AWS SageMaker notebook (NVIDIA L4, Python 3.10.20, NumPy 2.2.6). It verified all 16 files of the pack and wrote a file with the reference SHA-256 below, byte-identical to the submitted file.
+
+**Effect of library versions.** On 2026-11-28 a fresh clone was run on the same L4, but by accident with a different Python (3.10.22) and torch 2.12.1+cu130. The embeddings differed by at most 5e-4, a few stage-1 candidates changed, and the final file was not identical: 19,849 of 19,858 rows have the same top-10 set, 19,809 the same order, and 19,856 the same top 1. Recall@10 can therefore differ by at most 9 / 19,858 ≈ 0.0005. torch is now pinned to 2.10.0 in `requirements.txt` for this reason.
 
 ## Full mode: retrain everything
 

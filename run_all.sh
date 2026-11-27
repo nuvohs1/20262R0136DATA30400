@@ -31,6 +31,20 @@ for f in catalog.json train_gold.json test_queries.json category_taxonomy.txt; d
   fi
 done
 
+echo "== Environment =="
+"$PYTHON_BIN" - <<'PY'
+import sys, numpy, torch, transformers
+gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "none"
+print(f"python {sys.version.split()[0]} ({sys.executable}), numpy {numpy.__version__}, torch {torch.__version__}, "
+      f"transformers {transformers.__version__}, GPU {gpu}")
+if not torch.cuda.is_available():
+    sys.exit("No CUDA GPU is visible to this Python; the encoding and scoring steps need one.")
+if (torch.__version__.split("+")[0], numpy.__version__, transformers.__version__) != ("2.10.0", "2.2.6", "5.20.2"):
+    print("WARNING: the verified run used torch 2.10.0, numpy 2.2.6 and transformers 5.20.2 "
+          "(python -m pip install -r requirements.txt). Other versions give a near-identical, "
+          "not byte-identical, file.")
+PY
+
 echo "== Data check and unit tests =="
 "$PYTHON_BIN" scripts/prepare_data.py
 "$PYTHON_BIN" -m unittest discover -s tests

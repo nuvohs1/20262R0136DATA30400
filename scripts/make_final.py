@@ -79,7 +79,13 @@ def main():
               "SHA-256 differs from the submitted file. GPU kernels can reorder near-tied scores; "
               "the row differences are listed by scripts/compare_submissions.py.", flush=True)
     if args.require_match and not same:
-        raise SystemExit("FAILED: the reproduced file is not identical to the submitted file.")
+        try:
+            import torch
+            used = f"torch {torch.__version__}"
+        except ImportError:
+            used = "torch not importable"
+        raise SystemExit(f"FAILED: the reproduced file is not identical to the submitted file ({used}; "
+                         "the verified run used torch 2.10.0+cu128, numpy 2.2.6, transformers 5.20.2).")
 
 
 if __name__ == "__main__":

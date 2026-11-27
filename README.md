@@ -39,7 +39,7 @@ python -m pip install -r requirements.txt
 python -c "import torch; print(torch.__version__, torch.cuda.is_available())"   # must print True
 ```
 
-`requirements.txt` pins NumPy and Transformers. It leaves PyTorch unpinned so the CUDA build already on the machine is kept.
+`requirements.txt` pins the verified versions: NumPy 2.2.6, PyTorch 2.10.0 and Transformers 5.20.2. On the SageMaker `conda_pytorch` kernel, PyTorch 2.10.0+cu128 is already installed and is kept. Install the packages into the same Python that runs the script. `run_all.sh` prints the versions it uses and warns if they differ.
 
 **3. Run.**
 
@@ -74,7 +74,9 @@ Matches the submitted file (Kaggle 0.77188).
 Done: outputs/final/2024320020_final.csv is identical to the submitted file.
 ```
 
-If the file differs from the submission, the script stops with `FAILED: ...` instead.
+If the file differs from the submission, the script stops with `FAILED: ...` and prints the PyTorch version it used.
+
+Library versions matter. With PyTorch 2.12.1 instead of 2.10.0, the same models gave tiny numerical differences. The resulting file kept the same top-10 set in 19,849 of 19,858 rows and the same top 1 in all but 2 rows, so Recall@10 can move by at most 0.0005. Only the pinned versions give a byte-identical file.
 
 **Notes**
 
