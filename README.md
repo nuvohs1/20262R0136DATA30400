@@ -139,7 +139,7 @@ Protocols and results: [docs/dense_retrieval.md](docs/dense_retrieval.md), [docs
 
 ## Augmented cross-encoder
 
-`bash run_augce.sh 2024320020` (after `run_memory.sh candidates`; GPU, about 4 hours) trains a third cross-encoder with a shared review-token budget, review shuffling/subsets during training and mixed hybrid + BM25 negatives, and evaluates it alone and in a three-model ensemble on the proxy. Details: [docs/augmented_cross_encoder.md](docs/augmented_cross_encoder.md).
+`bash run_augce.sh 2024320020` (after `run_memory.sh candidates`; GPU, about 4 hours) trains a third cross-encoder with a shared review-token budget, review shuffling/subsets during training and mixed hybrid + BM25 negatives, and evaluates it alone and in a three-model ensemble on the proxy. Validation R@10 0.7147 (cross-encoder alone 0.6765); proxy validation of the three-model ensemble 0.6133 vs 0.6043 for the two-model one. Details: [docs/augmented_cross_encoder.md](docs/augmented_cross_encoder.md). A learned listwise fusion (`python scripts/learn_fusion.py`) does not beat the plain average in cross-validation ([learned fusion](docs/learned_fusion.md)).
 
 ## Compare BM25 weighting and review fusion
 

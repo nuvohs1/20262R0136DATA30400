@@ -177,6 +177,40 @@
       },
       "best": 0.59225
     },
+    "exp+aug": {
+      "selected_weight": 0.6,
+      "recall_at_10_by_weight": {
+        "0.0": 0.547,
+        "0.1": 0.56425,
+        "0.2": 0.57425,
+        "0.3": 0.58875,
+        "0.4": 0.595,
+        "0.5": 0.597,
+        "0.6": 0.60025,
+        "0.7": 0.59675,
+        "0.8": 0.591,
+        "0.9": 0.58325,
+        "1.0": 0.57475
+      },
+      "best": 0.60025
+    },
+    "exp+ens3": {
+      "selected_weight": 0.6,
+      "recall_at_10_by_weight": {
+        "0.0": 0.547,
+        "0.1": 0.563,
+        "0.2": 0.57575,
+        "0.3": 0.58475,
+        "0.4": 0.595,
+        "0.5": 0.59825,
+        "0.6": 0.604,
+        "0.7": 0.6,
+        "0.8": 0.591,
+        "0.9": 0.58125,
+        "1.0": 0.571
+      },
+      "best": 0.604
+    },
     "mem+rerank": {
       "selected_weight": 0.5,
       "recall_at_10_by_weight": {
@@ -495,6 +529,94 @@
         "mrr@10": 0.37649
       }
     },
+    "exp+aug (w 0.6, proxy-tuned)": {
+      "all": {
+        "recall@1": 0.3035,
+        "precision@1": 0.3035,
+        "ndcg@1": 0.3035,
+        "mrr@1": 0.3035,
+        "recall@5": 0.5205,
+        "precision@5": 0.1041,
+        "ndcg@5": 0.41797,
+        "mrr@5": 0.38393,
+        "recall@10": 0.6115,
+        "precision@10": 0.06115,
+        "ndcg@10": 0.44729,
+        "mrr@10": 0.39598
+      },
+      "with_memory": {
+        "recall@1": 0.322,
+        "precision@1": 0.322,
+        "ndcg@1": 0.322,
+        "mrr@1": 0.322,
+        "recall@5": 0.5285,
+        "precision@5": 0.1057,
+        "ndcg@5": 0.43172,
+        "mrr@5": 0.39954,
+        "recall@10": 0.6155,
+        "precision@10": 0.06155,
+        "ndcg@10": 0.45987,
+        "mrr@10": 0.41117
+      },
+      "without_memory": {
+        "recall@1": 0.285,
+        "precision@1": 0.285,
+        "ndcg@1": 0.285,
+        "mrr@1": 0.285,
+        "recall@5": 0.5125,
+        "precision@5": 0.1025,
+        "ndcg@5": 0.40421,
+        "mrr@5": 0.36833,
+        "recall@10": 0.6075,
+        "precision@10": 0.06075,
+        "ndcg@10": 0.43471,
+        "mrr@10": 0.38078
+      }
+    },
+    "exp+ens3 (w 0.6, proxy-tuned)": {
+      "all": {
+        "recall@1": 0.307,
+        "precision@1": 0.307,
+        "ndcg@1": 0.307,
+        "mrr@1": 0.307,
+        "recall@5": 0.52275,
+        "precision@5": 0.10455,
+        "ndcg@5": 0.41977,
+        "mrr@5": 0.3857,
+        "recall@10": 0.61325,
+        "precision@10": 0.06132,
+        "ndcg@10": 0.4489,
+        "mrr@10": 0.39765
+      },
+      "with_memory": {
+        "recall@1": 0.32,
+        "precision@1": 0.32,
+        "ndcg@1": 0.32,
+        "mrr@1": 0.32,
+        "recall@5": 0.5365,
+        "precision@5": 0.1073,
+        "ndcg@5": 0.43371,
+        "mrr@5": 0.39965,
+        "recall@10": 0.622,
+        "precision@10": 0.0622,
+        "ndcg@10": 0.46133,
+        "mrr@10": 0.41103
+      },
+      "without_memory": {
+        "recall@1": 0.294,
+        "precision@1": 0.294,
+        "ndcg@1": 0.294,
+        "mrr@1": 0.294,
+        "recall@5": 0.509,
+        "precision@5": 0.1018,
+        "ndcg@5": 0.40583,
+        "mrr@5": 0.37175,
+        "recall@10": 0.6045,
+        "precision@10": 0.06045,
+        "ndcg@10": 0.43648,
+        "mrr@10": 0.38426
+      }
+    },
     "mem first stage": {
       "all": {
         "recall@1": 0.2615,
@@ -690,6 +812,18 @@
       "candidates_per_row": 10,
       "valid": true,
       "sha256": "31a1c7f26ecf0baba9f1e18384b7a5ae2bedacb99feaf81783a0c571bb06f500"
+    },
+    "exp+aug": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "329aa3b23db67f247db8c0f7e69345daeecf9551d8771351755b0c18a1725642"
+    },
+    "exp+ens3": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "e1c6aef8ca9f12b64d1f38220f84e16e97048a45209364bed9ddcab60dc8405d"
     },
     "mem+rerank": {
       "rows": 19858,

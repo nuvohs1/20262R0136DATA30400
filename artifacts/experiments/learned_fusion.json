@@ -1,0 +1,162 @@
+{
+  "method": "listwise linear fusion of stage 1 and three cross-encoders vs ens3, chosen by 5-fold CV on the proxy tuning slice",
+  "features": [
+    "z(stage 1)",
+    "z(rerank)",
+    "z(hardneg)",
+    "z(aug)",
+    "1/log2(stage-1 rank + 2)"
+  ],
+  "lambda": 1.0,
+  "folds": 5,
+  "cv_recall_at_10": {
+    "ens3": [
+      0.5875,
+      0.60875,
+      0.605,
+      0.615,
+      0.60375
+    ],
+    "learned": [
+      0.58875,
+      0.61,
+      0.60125,
+      0.61375,
+      0.6
+    ]
+  },
+  "cv_mean": {
+    "ens3": 0.6039999999999999,
+    "learned": 0.60275
+  },
+  "selected": "ens3",
+  "ens3_weight": 0.6,
+  "ens3_curve": {
+    "0.0": 0.547,
+    "0.1": 0.563,
+    "0.2": 0.57575,
+    "0.3": 0.58475,
+    "0.4": 0.595,
+    "0.5": 0.59825,
+    "0.6": 0.604,
+    "0.7": 0.6,
+    "0.8": 0.591,
+    "0.9": 0.58125,
+    "1.0": 0.571
+  },
+  "learned_weights": {
+    "z(stage 1)": 0.5606275527947715,
+    "z(rerank)": 0.19269533768990502,
+    "z(hardneg)": 0.15998598880581724,
+    "z(aug)": 0.5548862622712563,
+    "1/log2(stage-1 rank + 2)": -0.015182982352642224
+  },
+  "proxy_validation": {
+    "ens3": {
+      "all": {
+        "recall@1": 0.307,
+        "precision@1": 0.307,
+        "ndcg@1": 0.307,
+        "mrr@1": 0.307,
+        "recall@5": 0.52275,
+        "precision@5": 0.10455,
+        "ndcg@5": 0.41977,
+        "mrr@5": 0.3857,
+        "recall@10": 0.61325,
+        "precision@10": 0.06132,
+        "ndcg@10": 0.4489,
+        "mrr@10": 0.39765
+      },
+      "with_memory": {
+        "recall@1": 0.32,
+        "precision@1": 0.32,
+        "ndcg@1": 0.32,
+        "mrr@1": 0.32,
+        "recall@5": 0.5365,
+        "precision@5": 0.1073,
+        "ndcg@5": 0.43371,
+        "mrr@5": 0.39965,
+        "recall@10": 0.622,
+        "precision@10": 0.0622,
+        "ndcg@10": 0.46133,
+        "mrr@10": 0.41103
+      },
+      "without_memory": {
+        "recall@1": 0.294,
+        "precision@1": 0.294,
+        "ndcg@1": 0.294,
+        "mrr@1": 0.294,
+        "recall@5": 0.509,
+        "precision@5": 0.1018,
+        "ndcg@5": 0.40583,
+        "mrr@5": 0.37175,
+        "recall@10": 0.6045,
+        "precision@10": 0.06045,
+        "ndcg@10": 0.43648,
+        "mrr@10": 0.38426
+      }
+    },
+    "learned": {
+      "all": {
+        "recall@1": 0.30925,
+        "precision@1": 0.30925,
+        "ndcg@1": 0.30925,
+        "mrr@1": 0.30925,
+        "recall@5": 0.52225,
+        "precision@5": 0.10445,
+        "ndcg@5": 0.42133,
+        "mrr@5": 0.38785,
+        "recall@10": 0.614,
+        "precision@10": 0.0614,
+        "ndcg@10": 0.45097,
+        "mrr@10": 0.40007
+      },
+      "with_memory": {
+        "recall@1": 0.329,
+        "precision@1": 0.329,
+        "ndcg@1": 0.329,
+        "mrr@1": 0.329,
+        "recall@5": 0.5345,
+        "precision@5": 0.1069,
+        "ndcg@5": 0.43717,
+        "mrr@5": 0.40489,
+        "recall@10": 0.6225,
+        "precision@10": 0.06225,
+        "ndcg@10": 0.46546,
+        "mrr@10": 0.41646
+      },
+      "without_memory": {
+        "recall@1": 0.2895,
+        "precision@1": 0.2895,
+        "ndcg@1": 0.2895,
+        "mrr@1": 0.2895,
+        "recall@5": 0.51,
+        "precision@5": 0.102,
+        "ndcg@5": 0.40548,
+        "mrr@5": 0.37082,
+        "recall@10": 0.6055,
+        "precision@10": 0.06055,
+        "ndcg@10": 0.43648,
+        "mrr@10": 0.38369
+      }
+    }
+  },
+  "test_csv": {
+    "ens3": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "e1c6aef8ca9f12b64d1f38220f84e16e97048a45209364bed9ddcab60dc8405d"
+    },
+    "learned": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "cbafeedd312a8eb6b50e02e5357491d1ffc35fadc97a114d849e9c34a5c86b84"
+    }
+  },
+  "environment": {
+    "python": "3.15.2",
+    "numpy": "2.5.5"
+  }
+}

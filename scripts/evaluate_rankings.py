@@ -25,6 +25,7 @@ RUNS = {
     "Multi-stage: hybrid top 50 + BERT cross-encoder (w 0.5)": "outputs/rerank/submission/validation_reranked.csv",
     "Multi-stage + self-trained cross-encoder (pseudo-labels)": "outputs/pseudo/submission/validation_reranked.csv",
     "Multi-stage + cross-encoder trained with hybrid hard negatives": "outputs/hardneg/submission/validation_reranked.csv",
+    "Multi-stage + augmented cross-encoder": "outputs/augce/submission/validation_reranked.csv",
 }
 
 

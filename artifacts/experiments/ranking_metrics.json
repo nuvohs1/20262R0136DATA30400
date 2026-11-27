@@ -122,6 +122,21 @@
       "precision@10": 0.07145,
       "ndcg@10": 0.54085,
       "mrr@10": 0.48636
+    },
+    "Multi-stage + augmented cross-encoder": {
+      "file": "outputs/augce/submission/validation_reranked.csv",
+      "recall@1": 0.3945,
+      "precision@1": 0.3945,
+      "ndcg@1": 0.3945,
+      "mrr@1": 0.3945,
+      "recall@5": 0.629,
+      "precision@5": 0.1258,
+      "ndcg@5": 0.51855,
+      "mrr@5": 0.48188,
+      "recall@10": 0.71475,
+      "precision@10": 0.07147,
+      "ndcg@10": 0.54631,
+      "mrr@10": 0.49335
     }
   }
 }

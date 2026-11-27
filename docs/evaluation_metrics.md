@@ -19,6 +19,7 @@
 | Multi-stage: hybrid top 50 + BERT cross-encoder (w = 0.5) | 0.3767 | 0.6130 | 0.7073 | 0.1226 | 0.0707 | 0.5040 | 0.5344 | 0.4801 | 0.76916¹ |
 | Multi-stage + self-trained cross-encoder (pseudo-labels) | 0.3845 | 0.6140 | 0.7075 | 0.1228 | 0.0707 | 0.5080 | 0.5383 | 0.4852 | 0.76936¹ |
 | Multi-stage + cross-encoder trained with hybrid hard negatives (w = 0.6) | 0.3852 | 0.6232 | 0.7145 | 0.1246 | 0.0714 | 0.5114 | 0.5409 | 0.4864 | 0.75929¹ |
+| Multi-stage + augmented cross-encoder (w = 0.6) | 0.3945 | 0.6290 | 0.7147 | 0.1258 | 0.0715 | 0.5185 | 0.5463 | 0.4934 | – |
 
 ¹ The test file uses BM25 v2 with labelled-review expansion (Kaggle 0.60761 on its own). Expansion cannot be measured on the local validation split, because validation products never appear in training.
 
