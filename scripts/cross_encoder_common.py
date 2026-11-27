@@ -4,6 +4,8 @@ Input for one (query, product) pair, at most --max-length tokens:
   [CLS] review_1 [SEP] review_2 [SEP] ... review_5 [SEP] product passage [SEP]
 Each review is truncated to --review-tokens WordPiece tokens (segment A); the passage
 (Title | Store | Features | Description, as in dense retrieval) fills the rest (segment B).
+With --review-budget (the augmented cross-encoder), the reviews instead share one token budget
+(review_retrieval.ce_input.allocate), and training draws shuffled review subsets.
 Token IDs are kept as NumPy int32 arrays and pairs are assembled per batch, so millions of
 candidate pairs never have to be materialized at once.
 """
@@ -13,12 +15,15 @@ import time
 import numpy as np
 import torch
 
+from review_retrieval.ce_input import assemble
 from review_retrieval.dense_text import review_texts
+
+REVIEW_CAP = 256  # tokens kept per review before the shared budget is applied
 
 
 class PairEncoder:
-    def __init__(self, tokenizer, passage_texts, max_length=512, review_tokens=64):
-        self.max_length, self.review_tokens = max_length, review_tokens
+    def __init__(self, tokenizer, passage_texts, max_length=512, review_tokens=64, review_budget=None):
+        self.max_length, self.review_tokens, self.review_budget = max_length, review_tokens, review_budget
         self.cls, self.sep, self.pad = tokenizer.cls_token_id, tokenizer.sep_token_id, tokenizer.pad_token_id
         self.tokenizer = tokenizer
         self.passages = self._ids(passage_texts, max_length)
@@ -31,24 +36,29 @@ class PairEncoder:
             out.extend(np.asarray(ids, dtype=np.int32) for ids in enc)
         return out
 
-    def queries(self, queries, review_indices=None):
-        """Token IDs of the concatenated reviews for each query record. review_indices (proxy
-        validation) keeps only the listed reviews of each query, in their original order."""
+    def review_ids(self, queries, review_indices=None):
+        """Per query, the token IDs of each review (cut at the per-review limit of this layout).
+        review_indices (proxy validation) keeps only the listed reviews, in their original order."""
         texts = [review_texts(q) for q in queries]
         if review_indices is not None:
             texts = [[q[i] for i in idx] for q, idx in zip(texts, review_indices)]
-        flat = self._ids([t for q in texts for t in q], self.review_tokens)
-        sep = np.asarray([self.sep], dtype=np.int32)
+        limit = REVIEW_CAP if self.review_budget else self.review_tokens
+        flat = self._ids([t for q in texts for t in q], limit)
         out, start = [], 0
         for q in texts:
-            parts = []
-            for j, ids in enumerate(flat[start:start + len(q)]):
-                if j:
-                    parts.append(sep)
-                parts.append(ids)
-            out.append(np.concatenate(parts))
+            out.append(flat[start:start + len(q)])
             start += len(q)
         return out
+
+    def join(self, reviews):
+        """List of per-review token arrays -> query token IDs (segment A)."""
+        if self.review_budget:
+            return assemble(reviews, self.sep, budget=self.review_budget)
+        return assemble(reviews, self.sep, cap=self.review_tokens)
+
+    def queries(self, queries, review_indices=None):
+        """Token IDs of the concatenated reviews for each query record."""
+        return [self.join(r) for r in self.review_ids(queries, review_indices)]
 
     def length(self, query, item):
         return min(self.max_length, len(query) + len(self.passages[item]) + 3)

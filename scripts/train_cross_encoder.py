@@ -17,6 +17,12 @@ Protocol (same as the bi-encoder):
   --negatives outputs/ltr/negatives_full.json --stop-after-epoch K
       model B: all 20,000 training queries, same schedule, stops at model A's epoch.
 
+Augmented variant (run_augce.sh): --review-budget 320 lets the reviews share one token budget
+instead of a fixed 64 tokens each; --augment shuffles each query's reviews and keeps only 3 or 4
+of them in half of the draws (random.Random(42 + epoch)); --extra-negatives adds a second
+negative pool of the same query set (e.g. BM25 + hybrid negatives), and --extra-count of the
+G-1 negatives in every group come from it (review_retrieval.ce_input).
+
 Self-training (scripts/make_pseudo_labels.py): --pseudo outputs/pseudo/pseudo_dev.json adds
 pseudo-labelled tuning-slice and validation queries to model A's data (reviews only, labels
 never read); --pseudo outputs/pseudo/pseudo_full.json adds pseudo-labelled test queries to
@@ -45,6 +51,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from cross_encoder_common import PairEncoder, score_candidates
 from encode_dense import set_seeds
+from review_retrieval.ce_input import sample_reviews
 from review_retrieval.common import read_json, sha256
 from review_retrieval.dense_text import product_passage
 from review_retrieval.model_policy import (ALLOWED_CHECKPOINTS, DEFAULT_CHECKPOINT, PROVENANCE_FILE,
@@ -71,6 +78,11 @@ def main():
     parser.add_argument("--max-length", type=int, default=512)
     parser.add_argument("--review-tokens", type=int, default=64)
     parser.add_argument("--eval-batch-size", type=int, default=256)
+    parser.add_argument("--review-budget", type=int, help="Shared review-token budget (default: fixed --review-tokens per review)")
+    parser.add_argument("--augment", action="store_true", help="Shuffle reviews and drop to 3-4 reviews in some draws")
+    parser.add_argument("--keep-all", type=float, default=0.5, help="Probability of keeping all reviews (--augment)")
+    parser.add_argument("--extra-negatives", type=Path, help="Second negative pool of the same query set")
+    parser.add_argument("--extra-count", type=int, default=3, help="Negatives per group drawn from --extra-negatives")
     args = parser.parse_args()
     set_seeds(42)
     torch.use_deterministic_algorithms(True, warn_only=True)
@@ -90,6 +102,19 @@ def main():
         if not stage.get("dense_checkpoint_checked") or stage.get("dense_negatives_set") != record["set"]:
             raise ValueError("Hybrid negatives must come from the verified LTR model of the same query set")
     negative_source = "hybrid BM25 + LTR BERT" if stage.get("dense") else "BM25"
+    extra = read_json(args.extra_negatives) if args.extra_negatives else None
+    if extra is not None:
+        if extra["set"] != record["set"] or extra["train_gold_sha256"] != record["train_gold_sha256"]                 or extra["train_query_ids"] != record["train_query_ids"]:
+            raise ValueError("--extra-negatives must cover the same query set as --negatives")
+        x_stage = extra["first_stage"]
+        if x_stage.get("dense") and (not x_stage.get("dense_checkpoint_checked") or x_stage.get("dense_negatives_set") != extra["set"]):
+            raise ValueError("Hybrid negatives must come from the verified LTR model of the same query set")
+        x_source = "hybrid BM25 + LTR BERT" if x_stage.get("dense") else "BM25"
+        if not 0 < args.extra_count < args.group_size - 1:
+            raise ValueError("--extra-count must leave negatives from both pools")
+        negative_source = f"{negative_source} ({args.group_size - 1 - args.extra_count}) + {x_source} ({args.extra_count})"
+    if args.pseudo and (extra is not None or args.augment):
+        raise ValueError("Self-training is not combined with the augmented variant")
     train = {q["query_id"]: q for q in read_json(args.data_dir / "train_gold.json")}
     train_ids = record["train_query_ids"]
     held_out = set(record["tune_query_ids"]) | set(record["validation_query_ids_excluded"])
@@ -129,6 +154,12 @@ def main():
         "negative_source": negative_source,
         "max_length": args.max_length, "review_tokens": args.review_tokens,
     }
+    if args.review_budget:
+        provenance["review_budget"] = args.review_budget
+    if args.augment:
+        provenance["augmentation"] = f"shuffled reviews; 3-4 of 5 kept with probability {1 - args.keep_all}"
+    if extra is not None:
+        provenance["extra_negatives_sha256"] = sha256(args.extra_negatives)
     if pseudo is not None:
         provenance.update({"pseudo_labels_sha256": sha256(args.pseudo), "pseudo_set": pseudo["set"],
                            "pseudo_queries": len(pseudo_records), "pseudo_threshold": pseudo["threshold"]})
@@ -140,12 +171,14 @@ def main():
     model = AutoModelForSequenceClassification.from_pretrained(args.model, revision=args.revision, num_labels=1).to(device)
     model.gradient_checkpointing_enable()
     print("Tokenizing catalog and reviews...", flush=True)
-    encoder = PairEncoder(tokenizer, [product_passage(p) for p in catalog], args.max_length, args.review_tokens)
+    encoder = PairEncoder(tokenizer, [product_passage(p) for p in catalog], args.max_length, args.review_tokens,
+                          args.review_budget)
     labelled_ids = list(train_ids)
     train_ids = labelled_ids + sorted(pseudo_records)
     examples = {**{q: train[q] for q in labelled_ids}, **pseudo_records}
     query_index = {q: n for n, q in enumerate(train_ids)}
-    query_ids = encoder.queries([examples[q] for q in train_ids])
+    review_ids = encoder.review_ids([examples[q] for q in train_ids])
+    query_ids = [encoder.join(r) for r in review_ids]
     if tune is not None:
         tune_queries = encoder.queries([train[q] for q in tune["query_ids"]])
         tune_items = [[position[i] for i in row] for row in tune["items"]]
@@ -181,11 +214,25 @@ def main():
         start, running = time.perf_counter(), 0.0
         for step in range(steps_per_epoch):
             batch_q = order[step * args.batch_queries:(step + 1) * args.batch_queries]
-            pairs = []
-            for q in batch_q:
-                group = [examples[q]["item_id"]] + rng.sample(record["negatives"][q][:args.negative_pool], args.group_size - 1)
-                pairs.extend((query_index[q], position[item]) for item in group)
-            inputs = encoder.batch(pairs, query_ids, device)
+            pairs, batch_ids = [], query_ids
+            if args.augment:
+                batch_ids = []
+            for b, q in enumerate(batch_q):
+                gold = examples[q]["item_id"]
+                if extra is None:
+                    negatives = rng.sample(record["negatives"][q][:args.negative_pool], args.group_size - 1)
+                else:
+                    x = rng.sample([i for i in extra["negatives"][q][:args.negative_pool] if i != gold], args.extra_count)
+                    pool = [i for i in record["negatives"][q][:args.negative_pool] if i != gold and i not in x]
+                    negatives = rng.sample(pool, args.group_size - 1 - args.extra_count) + x
+                if args.augment:
+                    revs = review_ids[query_index[q]]
+                    batch_ids.append(encoder.join([revs[i] for i in sample_reviews(len(revs), rng, args.keep_all)]))
+                    row = b
+                else:
+                    row = query_index[q]
+                pairs.extend((row, position[item]) for item in [gold] + negatives)
+            inputs = encoder.batch(pairs, batch_ids, device)
             with torch.autocast(device_type="cuda", dtype=torch.float16):
                 logits = model(**inputs).logits[:, 0]
             loss = torch.nn.functional.cross_entropy(logits.float().view(len(batch_q), args.group_size), targets)

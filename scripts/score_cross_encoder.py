@@ -52,7 +52,8 @@ def main():
     records = {q["query_id"]: q for q in read_json(args.data_dir / source)}
     tokenizer = AutoTokenizer.from_pretrained(args.checkpoint)
     model = AutoModelForSequenceClassification.from_pretrained(args.checkpoint).to(device)
-    encoder = PairEncoder(tokenizer, [product_passage(p) for p in catalog], provenance["max_length"], provenance["review_tokens"])
+    encoder = PairEncoder(tokenizer, [product_passage(p) for p in catalog], provenance["max_length"], provenance["review_tokens"],
+                          provenance.get("review_budget"))
     query_ids = encoder.queries([records[q] for q in candidates["query_ids"]], candidates.get("review_indices"))
     items = [[position[i] for i in row] for row in candidates["items"]]
     scores = score_candidates(model, encoder, query_ids, items, device, args.batch_size, candidates["split"])

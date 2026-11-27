@@ -7,10 +7,13 @@ Inputs (scripts/make_memory_candidates.py, scripts/score_cross_encoder.py):
   with hybrid negatives). Model A scores the proxy splits, model B scores test.
   ens = both cross-encoders averaged: (z(rerank) + z(hardneg)) / 2 within each query's
   candidates (no extra training; the two models differ in their training negatives).
+  aug = augmented cross-encoder (run_augce.sh; scored on the exp variant only);
+  ens3 = rerank, hardneg and aug averaged the same way.
+Pairs whose score files are missing are skipped.
 
 For every (first-stage variant, cross-encoder) pair, the fusion weight w is chosen on the proxy
 tuning slice. The pair with the best proxy tuning-slice Recall@10 is selected (ties: exp before
-mem, rerank before hardneg, i.e. the simpler or earlier pipeline). Proxy validation is reported
+mem, then the MODELS order, i.e. the simpler or earlier pipeline). Proxy validation is reported
 once for every pair, overall and separately for queries whose product has / has not labelled
 memory. The fusion weights used by the earlier submissions (rerank w 0.5, hardneg w 0.6) are
 also reported on the proxy, to check whether the proxy agrees with what was observed before.
@@ -30,7 +33,9 @@ from review_retrieval.metrics import mean_metrics
 from review_retrieval.rerank import WEIGHTS, rerank_positions, row_zscore, select_weight
 
 VARIANTS = ("exp", "mem")
-MODELS = ("rerank", "hardneg", "ens")  # tie-break order: simpler / earlier first
+MODELS = ("rerank", "hardneg", "ens", "aug", "ens3")  # tie-break order: simpler / earlier first
+PARTS = {"ens": ("rerank", "hardneg"), "ens3": ("rerank", "hardneg", "aug")}
+SPLITS = ("proxy_tune", "proxy_validation", "test")
 EARLIER_WEIGHTS = {"rerank": 0.5, "hardneg": 0.6}
 
 
@@ -62,9 +67,12 @@ def main():
     catalog_ids = sorted(p["item_id"] for p in read_json(args.data_dir / "catalog.json"))
     cands = {(v, s): read_json(d / f"candidates_{v}_{s}.json") for v in VARIANTS for s in ("proxy_tune", "proxy_validation", "test")}
     def scores(m, v, s):
-        if m == "ens":
-            return (row_zscore(scores("rerank", v, s)) + row_zscore(scores("hardneg", v, s))) / 2
+        if m in PARTS:
+            return sum(row_zscore(scores(p, v, s)) for p in PARTS[m]) / len(PARTS[m])
         return np.load(d / "scores" / f"{m}_{v}_{s}.npy")
+
+    def available(m, v):
+        return all((d / "scores" / f"{p}_{v}_{s}.npy").exists() for p in PARTS.get(m, (m,)) for s in SPLITS)
 
     tuning, results = {}, {}
     for v in VARIANTS:
@@ -72,6 +80,8 @@ def main():
         tune_gold = [gold_by_id[q] for q in tune["query_ids"]]
         valid_gold = [gold_by_id[q] for q in valid["query_ids"]]
         for m in MODELS:
+            if not available(m, v):
+                continue
             t_scores = scores(m, v, "proxy_tune")
             w, curve = select_weight(tune["items"], tune_gold, np.asarray(tune["first_stage_scores"]), t_scores)
             tuning[f"{v}+{m}"] = {"selected_weight": w, "recall_at_10_by_weight": curve, "best": curve[w]}
@@ -86,6 +96,8 @@ def main():
         valid_gold = [gold_by_id[q] for q in valid["query_ids"]]
         results[f"{v} first stage"] = report(valid, np.zeros((len(valid["items"]), len(valid["items"][0]))), 0.0, valid_gold)
         for m in MODELS:
+            if f"{v}+{m}" not in tuning:
+                continue
             s = scores(m, v, "proxy_validation")
             w = tuning[f"{v}+{m}"]["selected_weight"]
             results[f"{v}+{m} (w {w}, proxy-tuned)"] = report(valid, s, w, valid_gold)

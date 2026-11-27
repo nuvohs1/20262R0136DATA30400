@@ -137,6 +137,10 @@ Protocols and results: [docs/dense_retrieval.md](docs/dense_retrieval.md), [docs
 
 `bash run_memory.sh 2024320020 8` (after `run_hardneg.sh`; GPU for scoring only, no training) builds a proxy in which half of the tuning-slice and validation products receive 2 of their own reviews as labelled memory (seed 42), adds a dense labelled-review memory bonus to the first stage, and re-selects the first stage, cross-encoder and fusion weight on the proxy tuning slice. Details: [docs/memory_proxy.md](docs/memory_proxy.md).
 
+## Augmented cross-encoder
+
+`bash run_augce.sh 2024320020` (after `run_memory.sh candidates`; GPU, about 4 hours) trains a third cross-encoder with a shared review-token budget, review shuffling/subsets during training and mixed hybrid + BM25 negatives, and evaluates it alone and in a three-model ensemble on the proxy. Details: [docs/augmented_cross_encoder.md](docs/augmented_cross_encoder.md).
+
 ## Compare BM25 weighting and review fusion
 
 ```bash
