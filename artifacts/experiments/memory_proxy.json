@@ -160,6 +160,23 @@
       },
       "best": 0.58525
     },
+    "exp+ens": {
+      "selected_weight": 0.5,
+      "recall_at_10_by_weight": {
+        "0.0": 0.547,
+        "0.1": 0.5615,
+        "0.2": 0.57125,
+        "0.3": 0.58,
+        "0.4": 0.5905,
+        "0.5": 0.59225,
+        "0.6": 0.591,
+        "0.7": 0.5875,
+        "0.8": 0.57825,
+        "0.9": 0.56475,
+        "1.0": 0.552
+      },
+      "best": 0.59225
+    },
     "mem+rerank": {
       "selected_weight": 0.5,
       "recall_at_10_by_weight": {
@@ -193,9 +210,26 @@
         "1.0": 0.54525
       },
       "best": 0.6025
+    },
+    "mem+ens": {
+      "selected_weight": 0.4,
+      "recall_at_10_by_weight": {
+        "0.0": 0.569,
+        "0.1": 0.5805,
+        "0.2": 0.5895,
+        "0.3": 0.601,
+        "0.4": 0.60675,
+        "0.5": 0.60525,
+        "0.6": 0.59925,
+        "0.7": 0.596,
+        "0.8": 0.581,
+        "0.9": 0.5685,
+        "1.0": 0.55225
+      },
+      "best": 0.60675
     }
   },
-  "selected": "mem+rerank",
+  "selected": "mem+ens",
   "proxy_validation": {
     "exp first stage": {
       "all": {
@@ -417,6 +451,50 @@
         "mrr@10": 0.36612
       }
     },
+    "exp+ens (w 0.5, proxy-tuned)": {
+      "all": {
+        "recall@1": 0.297,
+        "precision@1": 0.297,
+        "ndcg@1": 0.297,
+        "mrr@1": 0.297,
+        "recall@5": 0.5095,
+        "precision@5": 0.1019,
+        "ndcg@5": 0.40947,
+        "mrr@5": 0.37622,
+        "recall@10": 0.60425,
+        "precision@10": 0.06042,
+        "ndcg@10": 0.44017,
+        "mrr@10": 0.38893
+      },
+      "with_memory": {
+        "recall@1": 0.3105,
+        "precision@1": 0.3105,
+        "ndcg@1": 0.3105,
+        "mrr@1": 0.3105,
+        "recall@5": 0.521,
+        "precision@5": 0.1042,
+        "ndcg@5": 0.42191,
+        "mrr@5": 0.38898,
+        "recall@10": 0.6125,
+        "precision@10": 0.06125,
+        "ndcg@10": 0.45167,
+        "mrr@10": 0.40137
+      },
+      "without_memory": {
+        "recall@1": 0.2835,
+        "precision@1": 0.2835,
+        "ndcg@1": 0.2835,
+        "mrr@1": 0.2835,
+        "recall@5": 0.498,
+        "precision@5": 0.0996,
+        "ndcg@5": 0.39704,
+        "mrr@5": 0.36346,
+        "recall@10": 0.596,
+        "precision@10": 0.0596,
+        "ndcg@10": 0.42868,
+        "mrr@10": 0.37649
+      }
+    },
     "mem first stage": {
       "all": {
         "recall@1": 0.2615,
@@ -548,6 +626,50 @@
         "ndcg@10": 0.38667,
         "mrr@10": 0.33426
       }
+    },
+    "mem+ens (w 0.4, proxy-tuned)": {
+      "all": {
+        "recall@1": 0.30125,
+        "precision@1": 0.30125,
+        "ndcg@1": 0.30125,
+        "mrr@1": 0.30125,
+        "recall@5": 0.51475,
+        "precision@5": 0.10295,
+        "ndcg@5": 0.41434,
+        "mrr@5": 0.381,
+        "recall@10": 0.601,
+        "precision@10": 0.0601,
+        "ndcg@10": 0.44241,
+        "mrr@10": 0.39268
+      },
+      "with_memory": {
+        "recall@1": 0.3545,
+        "precision@1": 0.3545,
+        "ndcg@1": 0.3545,
+        "mrr@1": 0.3545,
+        "recall@5": 0.568,
+        "precision@5": 0.1136,
+        "ndcg@5": 0.46927,
+        "mrr@5": 0.43633,
+        "recall@10": 0.6525,
+        "precision@10": 0.06525,
+        "ndcg@10": 0.49698,
+        "mrr@10": 0.44799
+      },
+      "without_memory": {
+        "recall@1": 0.248,
+        "precision@1": 0.248,
+        "ndcg@1": 0.248,
+        "mrr@1": 0.248,
+        "recall@5": 0.4615,
+        "precision@5": 0.0923,
+        "ndcg@5": 0.35942,
+        "mrr@5": 0.32567,
+        "recall@10": 0.5495,
+        "precision@10": 0.05495,
+        "ndcg@10": 0.38784,
+        "mrr@10": 0.33737
+      }
     }
   },
   "test_csv": {
@@ -563,6 +685,12 @@
       "valid": true,
       "sha256": "f79df99ad61c2e9336d96a02947df00ea856f443cd16d76ef19417f08725a2ea"
     },
+    "exp+ens": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "31a1c7f26ecf0baba9f1e18384b7a5ae2bedacb99feaf81783a0c571bb06f500"
+    },
     "mem+rerank": {
       "rows": 19858,
       "candidates_per_row": 10,
@@ -575,11 +703,17 @@
       "valid": true,
       "sha256": "a671b51be03576586ee9f44f8a8da222a4d9c25843000b02513b2205e2753617"
     },
+    "mem+ens": {
+      "rows": 19858,
+      "candidates_per_row": 10,
+      "valid": true,
+      "sha256": "f949a1d4b9c7eca950a77c303c4fe0a69c938b1d2df73e794f7f57d1ab35dcf9"
+    },
     "selected": {
       "rows": 19858,
       "candidates_per_row": 10,
       "valid": true,
-      "sha256": "52cce880dba2cc4713acbe4b66976f30646bc32e6e8149428ad445f6ee449541"
+      "sha256": "f949a1d4b9c7eca950a77c303c4fe0a69c938b1d2df73e794f7f57d1ab35dcf9"
     }
   },
   "environment": {

@@ -102,4 +102,34 @@ On test, the top 1 is a product with labelled reviews for 67.7% of queries with 
 
 The ensemble is added to `run_memory_eval.py` as a third cross-encoder (`ens`) with the same rule. w is chosen on the proxy tuning slice, and a pair is selected by proxy tuning-slice Recall@10. Ties go to the simpler pair (`rerank`, then `hardneg`, then `ens`). Proxy validation is reported once.
 
-Results: pending the AWS run (step 4g `eval` only, CPU, about a minute).
+**Results (same run, `eval` stage only).**
+
+Proxy tuning slice, Recall@10 at the selected w:
+
+| First stage | rerank | hardneg | ens |
+| --- | --- | --- | --- |
+| exp | 0.5908 (w 0.5) | 0.5853 (w 0.5) | 0.5923 (w 0.5) |
+| mem | 0.6025 (w 0.5) | 0.6025 (w 0.4) | **0.6068** (w 0.4) |
+
+By the fixed rule, the selected pair becomes **mem + ens** (`outputs/memory/submission/2024320020_final.csv`, SHA-256 `f949a1d4…`).
+
+Proxy validation (Recall@10, read once):
+
+| Ranker | All | Memory half | No-memory half | MRR@10 |
+| --- | --- | --- | --- | --- |
+| exp + rerank, w 0.5 (= step 4b) | 0.5995 | 0.6125 | 0.5865 | 0.3821 |
+| **exp + ens, w 0.5** | **0.6043** | 0.6125 | **0.5960** | 0.3889 |
+| mem + rerank, w 0.5 | 0.6000 | **0.6545** | 0.5455 | 0.3891 |
+| **mem + ens, w 0.4 (selected)** | 0.6010 | 0.6525 | 0.5495 | **0.3927** |
+
+- **The ensemble helps with both first stages.** With `exp`, it keeps step 4b's memory-half result (0.6125) and adds about one point on the no-memory half (0.5865 → 0.5960). With `mem`, it raises MRR@10 to the best value of all pairs. The two cross-encoders make different errors, as expected from their different training negatives.
+- **Memory is still a trade-off.** `mem + ens` is selected on the tuning slice, but on proxy validation `exp + ens` has the higher Recall@10 (0.6043 vs 0.6010). As above, the gap between the two first stages depends on the unknown test share of products with labelled reviews.
+
+**Kaggle (public, recorded after selection; not used to tune any setting).** `mem + rerank` scored 0.76865, against 0.76916 for step 4b (`exp + rerank`). The −0.05-point difference matches the proxy-validation tie (0.6000 vs 0.5995) and suggests the memory bonus does not add to review expansion on test.
+
+| File | SHA-256 (prefix) | Kaggle |
+| --- | --- | --- |
+| `exp_rerank` (≈ step 4b) | `5900d189` | 0.76916 (step-4b file) |
+| `mem_rerank` | `52cce880` | 0.76865 |
+| `exp_ens` | `31a1c7f2` | – |
+| `mem_ens` (selected) | `f949a1d4` | – |
