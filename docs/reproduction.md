@@ -16,7 +16,7 @@ Every model used for test (model B) was trained on all 20,000 training queries a
 
 ## Requirements
 
-- **Software.** Python 3.10+, NumPy, and for the GPU steps `torch` and `transformers` (`requirements-dense.txt`). The quick mode with a Google Drive link also needs `pip install gdown`.
+- **Software.** Python 3.10+ and `pip install -r requirements.txt` (NumPy, torch, transformers, gdown). Tested with Python 3.10.20, NumPy 2.2.6, torch 2.10.0+cu128 and transformers 5.20.2.
 - **Data.** The course files go in `project_release/`: `catalog.json`, `train_gold.json` and `test_queries.json`. `scripts/prepare_data.py` checks their fingerprints.
 - **GPU.** One CUDA GPU is needed for encoding and cross-encoder scoring. The reference runs used an NVIDIA L4 on the course AWS SageMaker notebook.
 

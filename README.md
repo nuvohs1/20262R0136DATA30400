@@ -1,170 +1,143 @@
-# DATA304 Final Project: Review-to-Product Retrieval
+# Review-to-Product Retrieval
 
-Match five reviews of one product to 10 distinct candidates from the full 50,000-product catalog. The official metric is Recall@10.
+DATA304 final project (student ID 2024320020).
 
-## Current status
+Given 5 reviews of a product, find that product among the 50,000 products in the catalog and return a top-10 list. The metric is Recall@10.
 
-The improved BM25 (BM25F, plural folding, and supervised Robertson–Spärck Jones query weights) reaches **57.83% local Recall@10** on the 4,000 held-out validation queries against all 50,000 products, and **0.57538** on Kaggle. Adding a thresholded bonus from labelled training reviews (review expansion) gives the best Kaggle score so far, **0.60761**. The original BM25 reached 36.25% locally (Kaggle 0.38120). All hyperparameters were chosen on a tuning slice of the development-training partition; validation was evaluated once. See [the BM25 v2 record](docs/bm25_v2.md). The earlier SQLite comparisons are in [the BM25 comparison](docs/bm25_tuning.md) and [the original baseline](docs/bm25_baseline.md). Dense retrieval and learning-to-rank fine-tuning use only `google-bert/bert-base-uncased`, whose training data (BookCorpus and English Wikipedia, MLM/NSP) is publicly documented; the code refuses any other checkpoint ([model eligibility](docs/model_eligibility.md)). Zero-shot BERT is nearly useless for retrieval (1.70% local Recall@10). Learning-to-rank fine-tuning raises it to 45.67%, and the BM25 v2 + fine-tuned BERT hybrid reaches **66.73%** local Recall@10, the best local result so far ([dense retrieval](docs/dense_retrieval.md), [learning-to-rank fine-tuning](docs/ltr_finetuning.md)). Kaggle: zero-shot BERT 0.02306, fine-tuned BERT 0.56058, and BM25 v2 (with review expansion) + fine-tuned BERT **0.72333**. A BERT cross-encoder that reranks the hybrid's top 50 candidates (fused with the stage-1 score, w = 0.5) raises local Recall@10 to **70.73%** ([multi-stage ranking](docs/reranking.md)); Kaggle **0.76916**. Self-training with pseudo-labels gives Kaggle 0.76936, but its local Recall@10 is tied (70.75%). Retraining the cross-encoder with hard negatives mined from the hybrid first stage raises local Recall@10 to 71.45% but scores lower on Kaggle (0.75929) ([hybrid hard negatives](docs/hard_negatives.md)). The reason is that validation products never have labelled training reviews, while about half of the test products do. A test-like proxy validation addresses this ([proxy validation](docs/memory_proxy.md)). On the proxy, step 4b ranks above the hybrid-negative reranker, as on Kaggle. Averaging the two cross-encoders improves proxy validation (0.6043, vs 0.5995 for step 4b) and gives the best Kaggle score, **0.77188**. A dense labelled-review memory bonus helped only on the proxy tuning slice and lowered Kaggle (0.76865, 0.76795), so it is not used. **Final file:** `outputs/final/2024320020_final.csv`, reproduced by `bash run_all.sh` ([reproduction](docs/reproduction.md)) ([final selection](docs/final_selection.md)). Precision@N, NDCG@N and MRR@N for all validation runs are in [evaluation metrics](docs/evaluation_metrics.md) (`python scripts/evaluate_rankings.py`).
+| | |
+| --- | --- |
+| Final file | `outputs/final/2024320020_final.csv` |
+| Kaggle public Recall@10 | **0.77188** |
+| Trained models | [models_2024320020.zip on Google Drive](https://drive.google.com/file/d/1BM16spl36PTRRuj8Tl8XxWP2iO6fwucc/view?usp=sharing) (1.3 GB) |
+| Only pretrained model used | `google-bert/bert-base-uncased` (revision `86b5e09`) |
 
-## Reproduce the final submission
+## How to run
+
+The command below reproduces the submitted file exactly from the trained models. We tested it from a fresh clone on an AWS SageMaker notebook with an NVIDIA L4 GPU. The output was byte-identical to the submitted file.
+
+**1. Requirements**
+
+- Linux or macOS with `bash`. On Windows, use WSL.
+- An NVIDIA GPU with CUDA.
+- Python 3.10 or later.
+- About 5 GB of free disk space.
 
 ```bash
-bash run_all.sh quick 2024320020 8   # verified model-B checkpoints -> test inference only (GPU, ~2.5 h)
-bash run_all.sh full  2024320020 8   # retrain everything from bert-base-uncased (GPU, ~10-12 h)
+pip install -r requirements.txt     # numpy, torch, transformers, gdown
 ```
 
-Both write `outputs/final/2024320020_final.csv` (19,858 rows, 10 distinct catalog IDs each). The model link, hardware and expected outputs are in [docs/reproduction.md](docs/reproduction.md).
-
-## Data setup
-
-Obtain the original files from the course distribution and place them under `project_release/`:
+**2. Course data.** Copy these four files into `project_release/`. They are not in the repository.
 
 ```text
-project_release/
-  catalog.json
-  train_gold.json
-  test_queries.json
-  category_taxonomy.txt
-  dummy_baseline.ipynb
+project_release/catalog.json
+project_release/train_gold.json
+project_release/test_queries.json
+project_release/category_taxonomy.txt
 ```
 
-The provided data and assignment PDF are excluded from Git. Review contents must remain local and must not be sent to external LLM services, including as summaries or rewrites. Only aggregate audit statistics and split query IDs are saved by the script below.
-
-## Reproduce Step 1
-
-Python 3.10 or later; no third-party dependencies are required.
+**3. Run**
 
 ```bash
-python scripts/prepare_data.py
+bash run_all.sh quick
 ```
 
-This validates the original inputs, checks ID and label consistency, audits missing fields and duplicate review texts, and writes:
+This takes about 2.5 hours on one L4, and it runs these steps in order:
 
-- `artifacts/data_audit.json`: counts, validation checks, and SHA-256 input fingerprints.
-- `artifacts/dev_split.json`: fixed training and validation query IDs (seed 42).
+1. Checks the data and runs the unit tests.
+2. Downloads the model zip from the Google Drive link above and checks the SHA-256 of every file.
+3. Encodes the catalog and the test reviews with the fine-tuned BERT.
+4. Builds 50 candidates per query (BM25 + BERT).
+5. Scores the candidates with the two cross-encoders.
+6. Writes `outputs/final/2024320020_final.csv` and checks its format.
 
-Override paths with `--data-dir` and `--output-dir`. Do not move or edit the original data to run the script.
+At the end the script prints `Matches the submitted file (Kaggle 0.77188).` when the result has the same SHA-256 as the submitted file.
 
-## Run the BM25 baseline
+You can also download the model zip yourself. Put `models_2024320020.zip` in the project root before running, and the script will use it instead of downloading. If `python` is not the right interpreter, set it: `PYTHON_BIN=python3 bash run_all.sh quick`.
 
-Python 3.10 or later with SQLite FTS5 support is sufficient. No package installation, GPU, model download, or external service is required. The recorded run uses Python 3.15.2 and SQLite 3.53.4. Check your interpreter with:
+**Retraining from scratch (optional).** `bash run_all.sh full` retrains every model from `bert-base-uncased` and selects every setting again. It takes about 12 hours on one L4. GPU training is not bit-exact across hardware, so this mode reproduces the method and the scores closely but not byte for byte. Details: [docs/reproduction.md](docs/reproduction.md).
 
-```bash
-python -c "import sqlite3; sqlite3.connect(':memory:').execute('CREATE VIRTUAL TABLE t USING fts5(text)'); print(sqlite3.sqlite_version)"
-python -m unittest discover -s tests -v
-python scripts/run_bm25.py
+## Method
+
+```text
+5 reviews ──► Stage 1: candidate retrieval (top 50 of 50,000)
+               BM25 v2  +  3 × fine-tuned BERT bi-encoder
+                 │
+                 ▼
+              Stage 2: reranking
+               cross-encoder A (BM25 negatives)  ┐ averaged
+               cross-encoder B (hard negatives)  ┘
+                 │
+                 ▼
+              final score = 0.5 × stage 1 + 0.5 × stage 2  ──► top 10
 ```
 
-The default command evaluates all 4,000 validation queries against all 50,000 products. It uses up to eight CPU worker processes reading the same local SQLite index; pass `--workers 1` for serial execution. It writes metrics, per-category results, validation rankings, and ID-only success/failure records under `outputs/bm25_baseline/`. That directory, including the generated catalog index, stays local. The index contains only product metadata. Metrics include code and input fingerprints, Python/SQLite versions, timings, and the exact configuration. Tests verify that serial and parallel rankings match.
+All scores are z-normalised within each query's 50 candidates before they are combined.
 
-The preprocessing applies Unicode NFKC normalization, HTML unescaping, tag/media-placeholder removal, lowercasing, and ASCII letter/digit tokenization. Numbers are retained; hyphens split tokens. All four metadata fields have equal weight. All five review texts are concatenated; ratings, helpfulness, timestamps, verified-purchase flags, IDs, and category labels are not retrieval features.
+- **BM25 v2.** BM25F over title, store, features and description. It folds plurals and learns query-term weights from the training pairs (RSJ weights). A second BM25 index is built over the labelled training reviews. When a query matches a product's training reviews much better than usual, that product gets a bonus (labelled-review expansion).
+- **Bi-encoder.** BERT fine-tuned with a listwise softmax loss on the 20,000 training queries, using BM25 hard negatives.
+- **Cross-encoders.** Each one reads `[CLS] reviews [SEP] product [SEP]` (max 512 tokens) and is trained with a listwise loss. Cross-encoder A uses negatives from BM25; cross-encoder B uses negatives from the stage-1 hybrid.
 
-For a practical CPU baseline, terms appearing in more than 20% of catalog products are excluded from queries, using the catalog itself rather than an external stopword list. Up to 64 remaining terms are selected by `IDF * (1 + log(query term frequency))`; selected terms each contribute once to the BM25 query. Query filtering is part of this baseline, and does not reduce the candidate catalog. FTS5 fixes `k1=1.2`, `b=0.75`, and uses Robertson IDF, replacing non-positive IDF with `1e-6`. It differs from the positive `log(1 + ...)` IDF used by some libraries. The positive IDF variant is used only to select query terms. No supervised training or parameter search is performed in this step. Ties use item ID order.
+**How settings were chosen.** We held out 4,000 of the 20,000 training queries as validation (seed 42). Every setting (α = 3, the epochs, w = 0.5) was chosen on training data only. Each model was trained twice:
 
-To disable both query filters for a separate ablation, pass `--max-query-terms 0 --max-document-frequency 1 --output-dir outputs/bm25_unfiltered`. Unfiltered long review queries can be considerably slower. `--validation-limit 20` is available for a smoke check only; a limited run is not a full validation result.
+- model A on the development queries, where its epoch was chosen;
+- model B on all 20,000 queries, for the same number of epochs.
 
-To generate a Kaggle-format test file, replace `YOUR_STUDENT_ID` with your own student ID:
+Model B is the one used for test.
 
-```bash
-python scripts/run_bm25.py --predict-test --student-id YOUR_STUDENT_ID
-python scripts/validate_submission.py outputs/bm25_baseline/YOUR_STUDENT_ID_final.csv
+## Results
+
+Recall@10 on the 4,000 validation queries (full catalog) and on the Kaggle public leaderboard:
+
+| Step | Validation | Kaggle |
+| --- | --- | --- |
+| BM25 baseline (SQLite FTS5) | 0.3625 | 0.38120 |
+| BM25 v2 | 0.5783 | 0.57538 |
+| BM25 v2 + labelled-review expansion | –¹ | 0.60761 |
+| BERT zero-shot (dense) | 0.0170 | 0.02306 |
+| BERT fine-tuned with learning to rank (dense) | 0.4568 | 0.56058 |
+| Hybrid: BM25 v2 + fine-tuned BERT | 0.6673 | 0.72333 |
+| + cross-encoder A reranking | 0.7073 | 0.76916 |
+| **+ average of cross-encoders A and B (final)** | –² | **0.77188** |
+
+¹ Validation products never have labelled reviews, so the expansion cannot be measured on validation.
+² Chosen on a test-like proxy validation instead (0.6043 vs 0.5995 for cross-encoder A alone); see below.
+
+Precision, NDCG and MRR at 1/5/10 for every step are in [docs/evaluation_metrics.md](docs/evaluation_metrics.md).
+
+**Why a proxy validation.** About half of the test products have labelled training reviews, but no validation product does. Because of this gap, cross-encoder B looked better on validation (0.7145) yet scored lower on Kaggle (0.75929). The proxy fixes the gap. Half of the validation products get 2 of their own reviews as "labelled" reviews, and the queries keep the other 3. On the proxy the models rank in the same order as on Kaggle. Details: [docs/memory_proxy.md](docs/memory_proxy.md).
+
+### Tried but not used
+
+| Idea | Outcome | Why not used |
+| --- | --- | --- |
+| BM25 field weights, review-level fusion | below BM25 v2 | [docs/bm25_tuning.md](docs/bm25_tuning.md) |
+| Category classifier as an extra feature | selected weight 0, no change | [docs/category_auxiliary.md](docs/category_auxiliary.md) |
+| Approximate search (IVF) | 6× faster, Recall@10 0.4567 → 0.4400 | kept exact search; [docs/ann_ivf.md](docs/ann_ivf.md) |
+| Self-training with pseudo-labels | Kaggle 0.76936, no validation gain | trains on test reviews, so excluded; [docs/pseudo_labeling.md](docs/pseudo_labeling.md) |
+| Cross-encoder B alone | Kaggle 0.75929 | worse than A alone; [docs/hard_negatives.md](docs/hard_negatives.md) |
+| Dense "labelled-review memory" bonus | Kaggle 0.76865 / 0.76795 | helped only on the tuning slice; [docs/memory_proxy.md](docs/memory_proxy.md) |
+| Third cross-encoder (review augmentation) | Kaggle 0.77127 (3-model average) | below the final file; [docs/augmented_cross_encoder.md](docs/augmented_cross_encoder.md) |
+| Learned fusion weights | lost to the plain average in 5-fold CV | [docs/learned_fusion.md](docs/learned_fusion.md) |
+
+## Rules followed
+
+- **Data.** Only the course files are used: no external data, no web crawling and no LLM APIs. Review text never leaves the machine.
+- **Models.** Only `bert-base-uncased` at a pinned revision. `src/review_retrieval/model_policy.py` refuses any other checkpoint ([docs/model_eligibility.md](docs/model_eligibility.md)).
+- **Test data.** Test queries are used only for the final prediction. Nothing is trained, tuned or estimated on them.
+- **Reproducibility.** Every random step uses seed 42, and the model zip is verified against `artifacts/model_manifest.json`.
+- **Repository contents.** Data, outputs and checkpoints are in `.gitignore`.
+
+## Repository layout
+
+```text
+run_all.sh                 one-command reproduction (quick | full)
+run_*.sh                   individual stages (BM25, GPU training, reranking, ...)
+scripts/                   entry points: training, scoring, evaluation, make_final.py
+src/review_retrieval/      shared code: BM25, metrics, reranking, model policy
+tests/                     unit tests (python -m unittest discover -s tests)
+artifacts/                 data audit, dev split, selected settings and metrics (small JSON)
+docs/                      one page per experiment, plus reproduction and final selection
+notebooks/                 AWS SageMaker / Colab notebooks used to run the GPU steps
 ```
 
-Test generation also runs full validation first. The CSV has 19,858 rows in the original test order, exactly ten distinct valid candidates per query, and the required header. The script validates it automatically. This creates a local file; submit it on Kaggle to obtain an actual leaderboard score.
-
-On Bash-compatible systems, the audit, checks, and full baseline can be reproduced together with:
-
-```bash
-bash run_bm25.sh
-# Or include test prediction:
-bash run_bm25.sh --predict-test --student-id YOUR_STUDENT_ID
-```
-
-Set `PYTHON_BIN` to select another interpreter. On Windows PowerShell, the individual Python commands above work directly.
-
-## Run the improved BM25 (v2)
-
-Requires NumPy (`pip install -r requirements-fast.txt`); SciPy is not used.
-
-```bash
-python scripts/run_bm25_v2.py --predict-test --student-id 2024320020 --workers 8
-python scripts/validate_submission.py outputs/bm25_v2/2024320020_final.csv
-# Final BM25 submission (best Kaggle score, 0.60761): adds labelled-review expansion
-python scripts/run_bm25_v2.py --predict-test --student-id 2024320020 --workers 8 --review-expansion
-python scripts/validate_submission.py outputs/bm25_v2_expansion/2024320020_final.csv
-```
-
-`bash run_bm25_v2.sh 2024320020 8` runs the data audit, tests, both v2 variants, and submission checks. The final file is `outputs/bm25_v2_expansion/2024320020_final.csv`. The script reports held-out validation for the metadata model with and without review expansion, plus an expansion proxy. It then writes `outputs/bm25_v2/2024320020_final.csv` (or `outputs/bm25_v2_expansion/` with the flag). Label-derived statistics come only from the development-training partition for validation, and from all of `train_gold.json` for test. Details are in [docs/bm25_v2.md](docs/bm25_v2.md).
-
-## Dense retrieval and learning-to-rank fine-tuning (BERT)
-
-Only `google-bert/bert-base-uncased` at a pinned revision may be loaded. `src/review_retrieval/model_policy.py` enforces this in every script; evidence is in [docs/model_eligibility.md](docs/model_eligibility.md).
-
-1. Locally: `python scripts/mine_negatives.py --workers 8` mines BM25 hard negatives (item IDs only) into `outputs/ltr/`.
-2. On a GPU (Colab T4): `notebooks/gpu_colab.ipynb` runs `bash run_gpu.sh` (`requirements-dense.txt`). It computes zero-shot BERT embeddings, fine-tunes BERT with a listwise softmax ranking loss (model A on 12,000 development-training queries, model B on all 20,000), and encodes with both models. Finished steps are skipped on re-runs. On the course AWS SageMaker notebook (NVIDIA L4), `notebooks/aws_sagemaker.ipynb` runs the same `run_gpu.sh` followed by `run_dense_eval.sh` (step 3 below).
-3. Locally, NumPy only:
-
-```bash
-# Zero-shot dense retrieval and BM25 + dense hybrid
-python scripts/run_dense.py --embeddings outputs/dense/bert-base-uncased --output-dir outputs/dense_eval/bert-base-uncased --predict-test --student-id 2024320020 --workers 8
-# Fine-tuned (learning to rank)
-python scripts/run_dense.py --embeddings outputs/dense/bert-ltr-dev --test-embeddings outputs/dense/bert-ltr-full --output-dir outputs/dense_eval/bert-ltr --predict-test --student-id 2024320020 --workers 8
-```
-
-Protocols and results: [docs/dense_retrieval.md](docs/dense_retrieval.md), [docs/ltr_finetuning.md](docs/ltr_finetuning.md).
-
-## Multi-stage ranking (BERT cross-encoder reranker)
-
-`bash run_rerank.sh 2024320020 8` (GPU) takes the top 50 candidates of the BM25 v2 + fine-tuned BERT hybrid and reranks them with a BERT cross-encoder trained with a listwise loss on the course training pairs. The fusion weight is chosen on the tuning slice. The script writes `outputs/rerank/submission/2024320020_final.csv`. Local validation Recall@10: 66.73% (stage 1) → 70.73% (fused). Details: [docs/reranking.md](docs/reranking.md).
-
-## Self-training with pseudo-labels
-
-`bash run_pseudo.sh 2024320020` (GPU, after `run_rerank.sh`) labels unlabeled queries with the confident predictions of the multi-stage ranker (margin threshold at 0.9 precision on the tuning slice) and retrains the cross-encoder on labelled + pseudo-labelled pairs. Only course files are used. Local validation: Recall@1 37.68% → 38.45%, Recall@10 unchanged (70.73% → 70.75%), so step 4b remains the selected pipeline. The script writes `outputs/pseudo/submission/2024320020_final.csv`. Details: [docs/pseudo_labeling.md](docs/pseudo_labeling.md).
-
-## Category labels as auxiliary information
-
-`bash run_category.sh 2024320020` (GPU for one short encoding step, after `run_rerank.sh`) trains a label-GCN category classifier multi-task on queries and products (training-query categories and the official taxonomy only) and adds a category-agreement score to the reranker, with its weight chosen on the tuning slice. The classifier reaches 79.5% top-5 accuracy over 500 categories, but the score does not improve Recall@10 (β = 0 is selected), because the candidates already share the query's category. The script writes `outputs/category/submission/2024320020_final.csv`. Details: [docs/category_auxiliary.md](docs/category_auxiliary.md).
-
-## Approximate nearest-neighbour search (IVF)
-
-`python scripts/run_ann.py` (CPU) builds an IVF index (spherical k-means, 256 cells) over the fine-tuned BERT product embeddings and measures the speed/accuracy trade-off against exact dense search for several `nprobe` values, with `nprobe` selected on the tuning slice. With nprobe 8, it scores 3.2% of the catalog, runs 6.0× faster, and keeps 96.3% of the exact top 10. Validation Recall@10 is 0.4400, against 0.4567 for exact search. The submission keeps exact search. Details: [docs/ann_ivf.md](docs/ann_ivf.md).
-
-## Cross-encoder with hybrid hard negatives
-
-`bash run_hardneg.sh 2024320020 8` (GPU, after `run_rerank.sh` and `run_category.sh 2024320020 encode`) retrains the step-4b cross-encoder. Its negatives are mined from the hybrid BM25 v2 + LTR BERT first stage, the same distribution as the candidates it reranks, instead of BM25 alone. The protocol is unchanged: model A on 12,000 queries with the epoch and fusion weight chosen on the tuning slice, validation once, and model B on all 20,000 queries for test. Local validation Recall@10: 70.73% → 71.45%, but Kaggle 0.75929 (vs 0.76916 for step 4b). The script writes `outputs/hardneg/submission/2024320020_final.csv`. Details: [docs/hard_negatives.md](docs/hard_negatives.md).
-
-## Test-like proxy validation with labelled-review memory
-
-`bash run_memory.sh 2024320020 8` (after `run_hardneg.sh`; GPU for scoring only, no training) builds a proxy in which half of the tuning-slice and validation products receive 2 of their own reviews as labelled memory (seed 42), adds a dense labelled-review memory bonus to the first stage, and re-selects the first stage, cross-encoder and fusion weight on the proxy tuning slice. Details: [docs/memory_proxy.md](docs/memory_proxy.md).
-
-## Augmented cross-encoder
-
-`bash run_augce.sh 2024320020` (after `run_memory.sh candidates`; GPU, about 4 hours) trains a third cross-encoder with a shared review-token budget, review shuffling/subsets during training and mixed hybrid + BM25 negatives, and evaluates it alone and in a three-model ensemble on the proxy. Validation R@10 0.7147 (cross-encoder alone 0.6765); proxy validation of the three-model ensemble 0.6133 vs 0.6043 for the two-model one, but Kaggle 0.77127 vs 0.77188, so the final file is unchanged. Details: [docs/augmented_cross_encoder.md](docs/augmented_cross_encoder.md). A learned listwise fusion (`python scripts/learn_fusion.py`) does not beat the plain average in cross-validation ([learned fusion](docs/learned_fusion.md)).
-
-## Compare BM25 weighting and review fusion
-
-```bash
-python scripts/tune_bm25.py --workers 8
-python scripts/finish_bm25.py --predict-test --student-id 2024320020 --workers 16
-```
-
-This compares the original equal-field baseline, field weights `(4, 2, 2, 1)`, and title-emphasis weights `(8, 3, 2, 1)` in title/store/features/description order. On the best concatenated-query configuration, it compares equal-weight reciprocal rank fusion of the five individual review lists with a hybrid fusion that also includes the concatenated query at weight two. All retrieval searches the full catalog; fusion uses the first 100 matches of each view with RRF constant 60. Individual review queries retain up to 24 selected terms; the concatenated view retains up to 64. This is a comparison of complete aggregation configurations, not an isolated test of fusion alone.
-
-The separate-field implementation uses SQLite BM25 column weights on term frequency before saturation; document length remains the unweighted sum of all fields. This is not independent per-field length normalization. A rank-sorted cursor with explicit cutoff-tie expansion preserves deterministic product-ID tie-breaking.
-
-The second command adds two controlled query comparisons with equal field weights: up to 128 distinct terms with binary frequency, and up to 64 distinct terms with query count weight `min(4, 1 + floor(log2(count)))`. FTS5 repeated OR phrases implement the integer query weights; automated tests check the score multiplication. This is a quantized logarithmic query weight, not an exact floating-point log-frequency factor.
-
-Results are saved incrementally under `outputs/bm25_tuning/`, separately from the original baseline. The method is selected by local Recall@10, then Recall@1, then the earlier configuration on ties, before accessing test predictions. Only that method generates `outputs/bm25_tuning/2024320020_final.csv`. Add `--resume` to either command to reuse validation checkpoints only when source, code, split, configuration, and prediction fingerprints match. If verified baseline predictions are already present, the first script reuses them after checking twenty actual queries for equal-field equivalence; otherwise it recomputes the baseline. If the baseline remains selected, the second script reuses the verified original test file. Neither command submits to Kaggle.
-
-The full audit, tests, seven-method comparison, and selected test prediction can also be reproduced with `bash run_bm25_tuning.sh 2024320020 8`. The last argument controls local worker count; reduce it for a machine with fewer CPU cores. The recorded run used eight workers for the field/fusion comparisons and sixteen for the two query comparisons.
-
-An optional NumPy core scorer is provided to avoid repeatedly calculating the same document-term BM25 contributions. After the SQLite comparisons are complete, install `requirements-fast.txt` and run `python scripts/fast_bm25_prediction.py --predict-test --workers 8`. It checks all 4,000 validation rankings for the baseline and the two query variants against the SQLite CSVs, and requires an exact full-validation match for the selected method before generating `outputs/bm25_tuning/fast/2024320020_final.csv`. Close-score cases use the SQLite reference to preserve tie order. It uses no NumPy random sampling or SciPy. The package-free SQLite pipeline above remains sufficient for reproduction.
-
-## Evaluation protocol
-
-All validation retrieval searches must use the entire 50,000-product catalog. Validation labels, category labels, and reviews must be withheld from supervised training and from any review-enriched product index. Exact duplicate review texts across the split are counted by the audit and should be considered when interpreting results. Test labels are unavailable; do not infer a one-to-one matching constraint from file sizes or query IDs.
-
-For experiments, use the same development split and report local Recall@10 separately from actual Kaggle leaderboard Recall@10. Required approaches are BM25, dense retrieval, and fine-tuning with learning-to-rank. Later steps will add their dependencies and exact execution commands. The final method is chosen with the test-like proxy validation; see [final selection](docs/final_selection.md).
-
-See [the project plan](docs/project_plan.md) for requirements and planned milestones.
-
+Two other documents may be useful: [docs/final_selection.md](docs/final_selection.md) explains how the final file was chosen, and [docs/project_plan.md](docs/project_plan.md) lists the project requirements and their status.
