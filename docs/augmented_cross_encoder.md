@@ -61,4 +61,10 @@ The augmented model is the first cross-encoder that clearly beats the first stag
 
 Test files: `outputs/memory/submission/exp_ens3/` (SHA-256 `e1c6aef8…`) and `exp_aug/` (`329aa3b2…`).
 
+**Kaggle (public, recorded after the choice).** `exp + ens3` scored 0.77127 and `exp + aug` 0.76906, against 0.77188 for `exp + ens`. This is the first time the proxy and Kaggle disagree on the order.
+
+A likely reason is a bias of the proxy toward this model. Proxy queries have 3 reviews, and the augmented model was trained on 3- or 4-review subsets in half of its draws. Test queries always have 5 reviews. On the old validation, which also has 5-review queries, the augmented reranker is level with the hybrid-negative one after fusion (0.7147 vs 0.7145). Its proxy lead (0.6115 vs 0.5965) therefore mostly reflects the shorter queries.
+
+The training augmentation and the proxy share the same 3-review shape, so the proxy is not a fair judge of augmentation. This is recorded as a limitation. The final file stays `exp + ens` (`docs/final_selection.md`).
+
 **Note on the proxy rule.** On the proxy tuning slice, `mem + ens` (0.6068) is still above `exp + ens3` (0.6040), so `run_memory_eval.py` still names `mem + ens` as its pick. The memory bonus has already been rejected: every `mem` file scored below its `exp` counterpart on Kaggle (`docs/final_selection.md`). It was therefore not scored with the new model, and `exp + ens3` is the candidate.

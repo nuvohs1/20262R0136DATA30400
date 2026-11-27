@@ -27,12 +27,15 @@ From `python scripts/evaluate_rankings.py` (`artifacts/experiments/ranking_metri
 | **exp + ens** | 0.5923 | **0.6043** | **0.77188** |
 | mem + rerank | 0.6025 | 0.6000 | 0.76865 |
 | mem + ens (proxy-rule pick) | **0.6068** | 0.6010 | 0.76795 |
+| exp + aug (augmented cross-encoder) | 0.6003 | 0.6115 | 0.76906 |
+| exp + ens3 (three cross-encoders) | 0.6040 | 0.6133 | 0.77127 |
 
 How the choice was made, stated plainly:
 
 - **Settings come from training data only.** w = 0.5 was chosen on the proxy tuning slice; α = 3 and every training setting on the tuning slice. Nothing was fitted to test inputs or Kaggle scores.
 - **The proxy rule picked mem + ens.** Its tuning-slice lead came from the memory bonus, which gained on the tuning slice but not on proxy validation, where exp + ens was best. The project guideline leaves the final Kaggle choice to the student, so both files were submitted; Kaggle agreed with proxy validation, and exp + ens was kept.
 - **Leaderboard use is limited to a choice among a few files that were all fixed in advance.** Every Kaggle score is recorded in these docs, including the lower ones. The 0.3-point gain of exp + ens over step 4b is in line with the 0.5-point proxy-validation gain, so it is not a leaderboard artefact.
+- **Augmented cross-encoder.** It improved proxy validation but not Kaggle. The proxy's 3-review queries match the model's 3- and 4-review training subsets, so it favours this model (`docs/augmented_cross_encoder.md`). A learned fusion did not beat the plain average in cross-validation (`docs/learned_fusion.md`). Neither changes the final file.
 - **The final file does not use the memory bonus or self-training.** Self-training used the test queries' reviews (without labels) as extra training data, which is transductive, and it is excluded.
 
 ## Kaggle final submissions
