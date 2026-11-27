@@ -23,6 +23,14 @@ WORKERS="${3:-8}"
 MODELS_URL="${MODELS_URL:-https://drive.google.com/file/d/1BM16spl36PTRRuj8Tl8XxWP2iO6fwucc/view?usp=sharing}"
 export PYTHON_BIN
 
+for f in catalog.json train_gold.json test_queries.json category_taxonomy.txt; do
+  if [ ! -f "project_release/$f" ]; then
+    echo "Missing project_release/$f. Copy the four course data files (catalog.json, train_gold.json,"
+    echo "test_queries.json, category_taxonomy.txt) into project_release/ first; they are not in the repository."
+    exit 1
+  fi
+done
+
 echo "== Data check and unit tests =="
 "$PYTHON_BIN" scripts/prepare_data.py
 "$PYTHON_BIN" -m unittest discover -s tests
