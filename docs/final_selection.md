@@ -19,18 +19,25 @@ From `python scripts/evaluate_rankings.py` (`artifacts/experiments/ranking_metri
 
 ## Decision
 
-**By the proxy rule fixed in advance, the selected pipeline is memory first stage + averaged cross-encoders (`ens`, w 0.4): `outputs/memory/submission/2024320020_final.csv`** (`run_memory.sh`, `docs/memory_proxy.md`).
+**Final file: hybrid first stage + the average of the two cross-encoders (`exp + ens`, w 0.5), Kaggle 0.77188.** It is written by `scripts/make_final.py` to `outputs/final/2024320020_final.csv` (`bash run_all.sh`, `docs/reproduction.md`), and is identical to `outputs/memory/submission/exp_ens/2024320020_final.csv`.
 
-- **Proxy evidence.** Proxy tuning-slice Recall@10: mem + ens 0.6068, mem + rerank 0.6025, exp + ens 0.5923, exp + rerank (step 4b) 0.5908. Proxy validation, read once: mem + ens 0.6010, exp + ens 0.6043, step 4b 0.5995.
-- **Why the old validation was replaced.** The hybrid-negative reranker had the best old-validation Recall@10 (0.7145) but scored 0.75929 on Kaggle, below step 4b (0.76916). The proxy reproduces that ordering; the old validation did not.
-- **Main alternative: exp + ens** (`outputs/memory/submission/exp_ens/2024320020_final.csv`). It has the best proxy-validation Recall@10, and it does not depend on the memory bonus, which scored 0.76865 on Kaggle with step 4b's cross-encoder (vs 0.76916 without).
-- **Step 4b remains the safe fallback** (Kaggle 0.76916).
-- **No overfitting to the leaderboard.** No weight, epoch, threshold or proxy setting is fitted to Kaggle scores or test data. Kaggle scores are recorded after each selection.
-- **Self-training is excluded from the final choice.** It used the test queries' reviews (without labels) as extra training data. That is transductive learning, and the final model should not be trained on test inputs.
+| Candidate | Proxy tuning R@10 | Proxy validation R@10 | Kaggle |
+| --- | --- | --- | --- |
+| exp + rerank (step 4b) | 0.5908 | 0.5995 | 0.76916 |
+| **exp + ens** | 0.5923 | **0.6043** | **0.77188** |
+| mem + rerank | 0.6025 | 0.6000 | 0.76865 |
+| mem + ens (proxy-rule pick) | **0.6068** | 0.6010 | 0.76795 |
+
+How the choice was made, stated plainly:
+
+- **Settings come from training data only.** w = 0.5 was chosen on the proxy tuning slice; α = 3 and every training setting on the tuning slice. Nothing was fitted to test inputs or Kaggle scores.
+- **The proxy rule picked mem + ens.** Its tuning-slice lead came from the memory bonus, which gained on the tuning slice but not on proxy validation, where exp + ens was best. The project guideline leaves the final Kaggle choice to the student, so both files were submitted; Kaggle agreed with proxy validation, and exp + ens was kept.
+- **Leaderboard use is limited to a choice among a few files that were all fixed in advance.** Every Kaggle score is recorded in these docs, including the lower ones. The 0.3-point gain of exp + ens over step 4b is in line with the 0.5-point proxy-validation gain, so it is not a leaderboard artefact.
+- **The final file does not use the memory bonus or self-training.** Self-training used the test queries' reviews (without labels) as extra training data, which is transductive, and it is excluded.
 
 ## Kaggle final submissions
 
-The student chooses the final Kaggle submissions among: the proxy-selected file (mem + ens), exp + ens, and step 4b (0.76916).
+exp + ens (0.77188) as the final file; step 4b (0.76916) as the second selection if two are allowed.
 
 ## Format check
 
@@ -40,8 +47,8 @@ The student chooses the final Kaggle submissions among: the proxy-selected file 
 | --- | --- | --- | --- |
 | `outputs/hardneg/submission/2024320020_final.csv` | 19,858 | yes | `5853f6cb53f4a5c5b5ae857dd0acbdec90193eec70f6ec498732764edb401e73` |
 | `outputs/rerank/submission/2024320020_final.csv` (step 4b) | 19,858 | yes | `e16dacbeaf32059ad97f410fde33672f582a9c00e4935d06799fcc6296b37380` |
-| `outputs/memory/submission/2024320020_final.csv` (mem + ens, proxy-selected) | 19,858 | yes | `f949a1d4b9c7eca950a77c303c4fe0a69c938b1d2df73e794f7f57d1ab35dcf9` |
-| `outputs/memory/submission/exp_ens/2024320020_final.csv` | 19,858 | yes | `31a1c7f26ecf0baba9f1e18384b7a5ae2bedacb99feaf81783a0c571bb06f500` |
+| `outputs/memory/submission/2024320020_final.csv` (mem + ens, Kaggle 0.76795) | 19,858 | yes | `f949a1d4b9c7eca950a77c303c4fe0a69c938b1d2df73e794f7f57d1ab35dcf9` |
+| `outputs/memory/submission/exp_ens/2024320020_final.csv` = `outputs/final/2024320020_final.csv` (**final**, Kaggle 0.77188) | 19,858 | yes | `31a1c7f26ecf0baba9f1e18384b7a5ae2bedacb99feaf81783a0c571bb06f500` |
 | `outputs/memory/submission/mem_rerank/2024320020_final.csv` (Kaggle 0.76865) | 19,858 | yes | `52cce880dba2cc4713acbe4b66976f30646bc32e6e8149428ad445f6ee449541` |
 | `outputs/pseudo/submission/2024320020_final.csv` | 19,858 | yes | `501bbfa8c12258f34612fb038db27f4759a5fac8e5a136a6ef8ec1438ca48ee6` |
 

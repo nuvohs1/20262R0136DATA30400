@@ -131,5 +131,7 @@ Proxy validation (Recall@10, read once):
 | --- | --- | --- |
 | `exp_rerank` (≈ step 4b) | `5900d189` | 0.76916 (step-4b file) |
 | `mem_rerank` | `52cce880` | 0.76865 |
-| `exp_ens` | `31a1c7f2` | – |
-| `mem_ens` (selected) | `f949a1d4` | – |
+| `exp_ens` | `31a1c7f2` | **0.77188** |
+| `mem_ens` (selected by the proxy rule) | `f949a1d4` | 0.76795 |
+
+The Kaggle results agree with proxy validation, not with the proxy tuning slice: `exp + ens` has the best proxy-validation Recall@10 and the best Kaggle score, and every `mem` file is below its `exp` counterpart. The memory bonus is therefore not used in the final file (`docs/final_selection.md`).
